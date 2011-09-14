@@ -159,7 +159,7 @@ newNotify :: String -> Maybe String -> Maybe String -> IO (Notification)  --{{{2
 newNotify summary body icon =
   withCString summary        $ \p_summary ->
   maybeWith withCString body $ \p_body ->
-  maybeWith withCString icon $ \p_icon -> do
+  maybeWith withCString icon $ \p_icon ->
   notify_notification_new p_summary p_body p_icon
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_new"
@@ -175,7 +175,7 @@ updateNotify :: Notification -> String -> Maybe String -> Maybe String -> IO Boo
 updateNotify notify summary body icon =
   withCString summary        $ \p_summary ->
   maybeWith withCString body $ \p_body ->
-  maybeWith withCString icon $ \p_icon -> do
+  maybeWith withCString icon $ \p_icon ->
   notify_notification_update notify p_summary p_body p_icon
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_update"
