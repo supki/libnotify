@@ -8,7 +8,7 @@ module System.Libnotify (
   initNotify, uninitNotify, isInitted,
   getAppName, setAppName, getServerCaps, getServerInfo,
 
-  Notification, Urgency(..),
+  Notification, Urgency,
   newNotify, updateNotify, showNotify,
   setTimeout, setCategory, setUrgency, setIconFromPixbuf, setImageFromPixbuf,
   setHintInt32, setHintDouble, setHintString, setHintByte, setHintByteArray,
