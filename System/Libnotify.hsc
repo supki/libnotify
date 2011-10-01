@@ -339,31 +339,25 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_byt
 
 
 addAction  --{{{2
-  :: Storable a
-  => Notification
+  :: Notification
   -> String
   -> String
-  -> (Notification -> String -> a -> IO ())
-  -> Maybe (Ptr a)
-  -> Maybe (FreeFunc a)
+  -> (Notification -> String -> IO ())
   -> IO ()
-addAction notify action label callback udata free =
+addAction notify action label callback =
   withCString action $ \p_action ->
   withCString label  $ \p_label -> do
     p_callback <- wrapActionCallback $ makeCallback callback
-    p_free     <- maybe (return nullFunPtr) wrapFreeFunc free
-    let p_udata = fromMaybe nullPtr udata
     notify_notification_add_action notify
                                    p_action
                                    p_label
                                    p_callback
-                                   p_udata
-                                   p_free
+                                   nullPtr
+                                   nullFunPtr
   where
-    makeCallback callback = \notify p_action p_udata -> do
+    makeCallback callback = \notify p_action _ -> do
       action <- peekCString p_action
-      udata <- peek p_udata
-      callback notify action udata
+      callback notify action
 
 foreign import ccall "wrapper"
   wrapActionCallback :: (ActionCallback a) -> IO (FunPtr (ActionCallback a))
