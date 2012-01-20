@@ -197,7 +197,7 @@ showNotify notify =
     then return result
     else do error <- peek p_error
             g_error_free p_error
-            throw error
+            throwGError error
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_show"
   notify_notification_show :: Notification -> Ptr (Ptr GError) -> IO Bool
@@ -396,7 +396,7 @@ closeNotify notify =
     then return result
     else do error <- peek p_error
             g_error_free p_error
-            throw error
+            throwGError error
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_close"
   notify_notification_close :: Notification -> Ptr (Ptr GError) -> IO Bool

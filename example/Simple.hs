@@ -16,13 +16,13 @@ new message = do
   return notify
 
 open n = do
-  catchGError (showNotify n) $ \error -> do
-    putStrLn $ "show: " ++ show error
+  catchGError (showNotify n) $ \(GError dom code msg) -> do
+    putStr "show: " >> print (dom, code, msg)
     return False
 
 close n = do
-  catchGError (closeNotify n) $ \error -> do
-    putStrLn $ "show: " ++ show error
+  catchGError (closeNotify n) $ \(GError dom code msg) -> do
+    putStr "show: " >> print (dom, code, msg)
     return False
 
 loop count lastNotify = do
