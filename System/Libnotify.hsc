@@ -8,9 +8,10 @@ module System.Libnotify (
   initNotify, uninitNotify, isInitted,
   getAppName, setAppName, getServerCaps, getServerInfo,
 
-  Notification, Urgency,
+  Notification, NotificationTimeout, Urgency,
   newNotify, updateNotify, showNotify,
-  setTimeout, setCategory, setUrgency, setIconFromPixbuf, setImageFromPixbuf,
+  setTimeout, expiresDefault, expiresNever, expires,
+  setCategory, setUrgency, setIconFromPixbuf, setImageFromPixbuf,
   setHintInt32, setHintDouble, setHintString, setHintByte, setHintByteArray,
   addAction, clearActions, closeNotify
 ) where
@@ -207,10 +208,24 @@ foreign import ccall unsafe "glib-object.h g_error_free"
 
 
 
+newtype NotificationTimeout = NotificationTimeout { getTimeout :: CInt }  --{{{2
+  deriving (Eq, Show)
 
-setTimeout :: Notification -> Int -> IO ()  --{{{2
+expiresDefault :: NotificationTimeout
+expiresDefault = NotificationTimeout $ #const NOTIFY_EXPIRES_DEFAULT
+
+expiresNever :: NotificationTimeout
+expiresNever = NotificationTimeout #const NOTIFY_EXPIRES_NEVER
+
+expires :: Int -> NotificationTimeout
+expires = NotificationTimeout . fromIntegral
+
+
+
+
+setTimeout :: Notification -> NotificationTimeout -> IO ()  --{{{2
 setTimeout notify timeout =
-  notify_notification_set_timeout notify (fromIntegral timeout)
+  notify_notification_set_timeout notify (getTimeout timeout)
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_timeout"
   notify_notification_set_timeout :: Notification -> CInt -> IO ()
