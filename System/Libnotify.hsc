@@ -353,6 +353,15 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_byt
 
 
 
+clearHints :: Notification -> IO ()  --{{{2
+clearHints = notify_notification_clear_hints
+
+foreign import ccall unsafe "libnotify/notify.h notify_notification_clear_hints"
+  notify_notification_clear_hints :: Notification -> IO ()
+
+
+
+
 addAction  --{{{2
   :: Notification
   -> String
