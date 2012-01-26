@@ -141,7 +141,8 @@ foreign import ccall unsafe "libnotify/notify.h notify_get_server_info"
 -- Data and Types  ---{{{2
 
 newtype Notification = Notification (Ptr Notification)
-  deriving Show
+
+newtype NotificationTimeout = NotificationTimeout {getTimeout :: CInt}
 
 newtype Urgency = Urgency CInt
 #{enum Urgency, Urgency,
@@ -208,10 +209,8 @@ foreign import ccall unsafe "glib-object.h g_error_free"
 
 
 
-newtype NotificationTimeout = NotificationTimeout { getTimeout :: CInt }  --{{{2
-  deriving (Eq, Show)
 
-expiresDefault :: NotificationTimeout
+expiresDefault :: NotificationTimeout --{{{2
 expiresDefault = NotificationTimeout $ #const NOTIFY_EXPIRES_DEFAULT
 
 expiresNever :: NotificationTimeout
@@ -219,9 +218,6 @@ expiresNever = NotificationTimeout #const NOTIFY_EXPIRES_NEVER
 
 expires :: Int -> NotificationTimeout
 expires = NotificationTimeout . fromIntegral
-
-
-
 
 setTimeout :: Notification -> NotificationTimeout -> IO ()  --{{{2
 setTimeout notify timeout =
