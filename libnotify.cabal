@@ -11,4 +11,4 @@ Library
   Build-Depends:	base, bytestring, glib, gtk
   Exposed-Modules:	System.Libnotify, System.Libnotify.Usable
   Pkgconfig-Depends:	libnotify
-  Extensions:		FlexibleInstances, EmptyDataDecls
+  Extensions:		EmptyDataDecls, FlexibleInstances
