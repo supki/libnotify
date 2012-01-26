@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
-module System.Libnotify.Usable
+module System.Libnotify.Easy
   ( withNotifications
   , setHint, generalize
   , oneShot) where
