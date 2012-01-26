@@ -9,6 +9,6 @@ Build-Type:	Simple
 
 Library
   Build-Depends:	base, bytestring, glib, gtk
-  Exposed-Modules:	System.Libnotify, System.Libnotify.Usable
+  Exposed-Modules:	System.Libnotify, System.Libnotify.Easy
   Pkgconfig-Depends:	libnotify
   Extensions:		EmptyDataDecls, FlexibleInstances
