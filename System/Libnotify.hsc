@@ -276,7 +276,7 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_image_fr
 
 
 
-setHintInt32 :: Notification -> String -> Int -> IO ()  --{{{2
+setHintInt32 :: Notification -> String -> Int32 -> IO ()  --{{{2
 setHintInt32 notify key value =
   withCString key $ \p_key ->
   notify_notification_set_hint_int32 notify p_key (fromIntegral value)

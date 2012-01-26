@@ -5,6 +5,7 @@ module System.Libnotify.Usable
   , oneShot) where
 
 import Data.Word (Word8)
+import Data.Int (Int32)
 import qualified Data.ByteString as BS
 
 import System.Libnotify
@@ -29,7 +30,7 @@ oneShot t b i hs = withNotifications Nothing $ do n <- newNotify t b i
 
 type Key = String
 
-data GeneralHint = HintInt String Int | HintDouble String Double | HintString String String | HintByte String Word8 | HintArray String BS.ByteString
+data GeneralHint = HintInt String Int32 | HintDouble String Double | HintString String String | HintByte String Word8 | HintArray String BS.ByteString
 
 class Hint a where
   setHint :: Notification -> a -> IO ()
@@ -43,7 +44,7 @@ instance Hint GeneralHint where
   setHint n (HintArray k v) = setHint n (k,v)
   generalize = id
 
-instance Hint (Key,Int) where
+instance Hint (Key,Int32) where
   setHint n (k,v) = setHintInt32 n k v
   generalize (k, v) = HintInt k v
 
