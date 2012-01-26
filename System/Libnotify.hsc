@@ -1,5 +1,4 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
--- Module  --{{{1
 
 #include <libnotify/notify.h>
 
@@ -29,12 +28,6 @@ import Unsafe.Coerce
 
 import qualified Data.ByteString as BS
 
-
-
-
--- Notify - Notification API  --{{{1
--- Data and Types  ---{{{2
-
 data ServerInfo = ServerInfo
   { serverName  :: String
   , serverVender :: String
@@ -42,10 +35,7 @@ data ServerInfo = ServerInfo
   , serverSpecVersion :: String
   } deriving (Eq, Ord, Read, Show)
 
-
-
-
-initNotify :: String -> IO Bool  --{{{2
+initNotify :: String -> IO Bool
 initNotify appName =
   withCString appName $ \p_appName ->
   notify_init p_appName
@@ -53,30 +43,19 @@ initNotify appName =
 foreign import ccall unsafe "libnotify/notify.h notify_init"
   notify_init :: CString -> IO Bool
 
-
-
-
-
-uninitNotify :: IO ()  --{{{2
+uninitNotify :: IO ()
 uninitNotify = notify_uninit
 
 foreign import ccall unsafe "libnotify/notify.h notify_uninit"
   notify_uninit :: IO ()
 
-
-
-
-
-isInitted :: IO Bool  --{{{2
+isInitted :: IO Bool
 isInitted = notify_is_initted
 
 foreign import ccall unsafe "libnotify/notify.h notify_is_initted"
   notify_is_initted :: IO Bool
 
-
-
-
-getAppName :: IO String  --{{{2
+getAppName :: IO String
 getAppName = do
   p_appName <- notify_get_app_name
   peekCString p_appName
@@ -84,10 +63,7 @@ getAppName = do
 foreign import ccall unsafe "libnotify/notify.h notify_get_app_name"
   notify_get_app_name :: IO CString
 
-
-
-
-setAppName :: String -> IO ()  --{{{2
+setAppName :: String -> IO ()
 setAppName appName =
   withCString appName $ \p_appName ->
   notify_set_app_name p_appName
@@ -95,10 +71,7 @@ setAppName appName =
 foreign import ccall unsafe "libnotify/notify.h notify_set_app_name"
   notify_set_app_name :: CString -> IO ()
 
-
-
-
-getServerCaps :: IO [String]  --{{{2
+getServerCaps :: IO [String]
 getServerCaps = do
   p_caps <- notify_get_server_caps >>= readGList
   mapM peekCString p_caps
@@ -106,10 +79,7 @@ getServerCaps = do
 foreign import ccall unsafe "libnotify/notify.h notify_get_server_caps"
   notify_get_server_caps :: IO GList
 
-
-
-
-getServerInfo :: IO ServerInfo  --{{{2
+getServerInfo :: IO ServerInfo
 getServerInfo =
   alloca $ \p_name ->
   alloca $ \p_vender ->
@@ -134,12 +104,6 @@ foreign import ccall unsafe "libnotify/notify.h notify_get_server_info"
                          -> (Ptr CString)
                          -> IO Bool
 
-
-
-
--- Notification - A passive pop-up notification  --{{{1
--- Data and Types  ---{{{2
-
 newtype Notification = Notification (Ptr Notification)
 
 newtype NotificationTimeout = NotificationTimeout {getTimeout :: CInt}
@@ -154,10 +118,7 @@ newtype Urgency = Urgency CInt
 type ActionCallback a = Notification -> CString -> Ptr a -> IO ()
 type FreeFunc a = Ptr a -> IO ()
 
-
-
-
-newNotify :: String -> Maybe String -> Maybe String -> IO (Notification)  --{{{2
+newNotify :: String -> Maybe String -> Maybe String -> IO (Notification)
 newNotify summary body icon =
   withCString summary        $ \p_summary ->
   maybeWith withCString body $ \p_body ->
@@ -170,10 +131,7 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_new"
                           -> CString
                           -> IO (Notification)
 
-
-
-
-updateNotify :: Notification -> String -> Maybe String -> Maybe String -> IO Bool  --{{{2
+updateNotify :: Notification -> String -> Maybe String -> Maybe String -> IO Bool
 updateNotify notify summary body icon =
   withCString summary        $ \p_summary ->
   maybeWith withCString body $ \p_body ->
@@ -186,10 +144,7 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_update"
                              -> CString
                              -> CString -> IO Bool
 
-
-
-
-showNotify :: Notification -> IO Bool  --{{{2
+showNotify :: Notification -> IO Bool
 showNotify notify =
   alloca $ \pp_error -> do
   poke pp_error nullPtr
@@ -207,10 +162,7 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_show"
 foreign import ccall unsafe "glib-object.h g_error_free"
   g_error_free :: Ptr GError -> IO ()
 
-
-
-
-expiresDefault :: NotificationTimeout --{{{2
+expiresDefault :: NotificationTimeout
 expiresDefault = NotificationTimeout $ #const NOTIFY_EXPIRES_DEFAULT
 
 expiresNever :: NotificationTimeout
@@ -219,17 +171,14 @@ expiresNever = NotificationTimeout #const NOTIFY_EXPIRES_NEVER
 expires :: Int -> NotificationTimeout
 expires = NotificationTimeout . fromIntegral
 
-setTimeout :: Notification -> NotificationTimeout -> IO ()  --{{{2
+setTimeout :: Notification -> NotificationTimeout -> IO ()
 setTimeout notify timeout =
   notify_notification_set_timeout notify (getTimeout timeout)
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_timeout"
   notify_notification_set_timeout :: Notification -> CInt -> IO ()
 
-
-
-
-setCategory :: Notification -> String -> IO ()  --{{{2
+setCategory :: Notification -> String -> IO ()
 setCategory notify category =
   withCString category $ \p_category ->
   notify_notification_set_category notify p_category
@@ -237,20 +186,14 @@ setCategory notify category =
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_category"
   notify_notification_set_category :: Notification -> CString -> IO ()
 
-
-
-
-setUrgency :: Notification -> Urgency -> IO ()  --{{{2
+setUrgency :: Notification -> Urgency -> IO ()
 setUrgency notify (Urgency urgency) =
   notify_notification_set_urgency notify urgency
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_urgency"
   notify_notification_set_urgency :: Notification -> CInt -> IO ()
 
-
-
-
-setIconFromPixbuf :: Notification -> Pixbuf -> IO ()  --{{{2
+setIconFromPixbuf :: Notification -> Pixbuf -> IO ()
 setIconFromPixbuf notify pixbuf =
   withForeignPtr (unsafeCoerce pixbuf) $ \p_pixbuf ->
   notify_notification_set_icon_from_pixbuf notify p_pixbuf
@@ -260,10 +203,7 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_icon_fro
                                            -> Ptr Pixbuf
                                            -> IO ()
 
-
-
-
-setImageFromPixbuf :: Notification -> Pixbuf -> IO ()  --{{{2
+setImageFromPixbuf :: Notification -> Pixbuf -> IO ()
 setImageFromPixbuf notify pixbuf =
   withForeignPtr (unsafeCoerce pixbuf) $ \p_pixbuf ->
   notify_notification_set_image_from_pixbuf notify p_pixbuf
@@ -273,10 +213,7 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_image_fr
                                             -> Ptr Pixbuf
                                             -> IO ()
 
-
-
-
-setHintInt32 :: Notification -> String -> Int32 -> IO ()  --{{{2
+setHintInt32 :: Notification -> String -> Int32 -> IO ()
 setHintInt32 notify key value =
   withCString key $ \p_key ->
   notify_notification_set_hint_int32 notify p_key (fromIntegral value)
@@ -287,10 +224,7 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_int
                                      -> CInt
                                      -> IO ()
 
-
-
-
-setHintDouble :: Notification -> String -> Double -> IO ()  --{{{2
+setHintDouble :: Notification -> String -> Double -> IO ()
 setHintDouble notify key value =
   withCString key $ \p_key ->
   notify_notification_set_hint_double notify p_key (realToFrac value)
@@ -301,8 +235,7 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_dou
                                       -> CDouble
                                       -> IO ()
 
-
-setHintString :: Notification -> String -> String -> IO ()  --{{{2
+setHintString :: Notification -> String -> String -> IO ()
 setHintString notify key value =
   withCString key   $ \p_key ->
   withCString value $ \p_value ->
@@ -314,10 +247,7 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_str
                                       -> CString
                                       -> IO ()
 
-
-
-
-setHintByte :: Notification -> String -> Word8 -> IO ()  --{{{2
+setHintByte :: Notification -> String -> Word8 -> IO ()
 setHintByte notify key value =
   withCString key $ \p_key ->
   notify_notification_set_hint_byte notify p_key (fromIntegral value)
@@ -328,10 +258,7 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_byt
                                     -> CUChar
                                     -> IO ()
 
-
-
-
-setHintByteArray :: Notification -> String -> BS.ByteString -> IO ()  --{{{2
+setHintByteArray :: Notification -> String -> BS.ByteString -> IO ()
 setHintByteArray notify key value =
   withCString key $ \p_key ->
   withArrayLen (BS.foldr' step [] value) $ \len p_bs ->
@@ -346,19 +273,13 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_byt
                                           -> CSize
                                           -> IO ()
 
-
-
-
-clearHints :: Notification -> IO ()  --{{{2
+clearHints :: Notification -> IO ()
 clearHints = notify_notification_clear_hints
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_clear_hints"
   notify_notification_clear_hints :: Notification -> IO ()
 
-
-
-
-addAction  --{{{2
+addAction
   :: Notification
   -> String
   -> String
@@ -394,19 +315,13 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_add_action"
                                  -> FunPtr (FreeFunc a)
                                  -> IO ()
 
-
-
-
-clearActions :: Notification -> IO ()  --{{{2
+clearActions :: Notification -> IO ()
 clearActions = notify_notification_clear_actions
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_clear_actions"
   notify_notification_clear_actions :: Notification -> IO ()
 
-
-
-
-closeNotify :: Notification -> IO Bool  --{{{2
+closeNotify :: Notification -> IO Bool
 closeNotify notify =
   alloca $ \pp_error -> do
   poke pp_error nullPtr
@@ -420,10 +335,3 @@ closeNotify notify =
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_close"
   notify_notification_close :: Notification -> Ptr (Ptr GError) -> IO Bool
-
-
-
-
--- __END__  --{{{1
--- vim: expandtab softtabstop=2 shiftwidth=2
--- vim: foldmethod=marker
