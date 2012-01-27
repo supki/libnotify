@@ -1,4 +1,7 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+-- | System.Libnotify.Internal module is low level c-bindings to Libnotify.
+-- No API stability is guaranteed.
+{-# OPTIONS_HADDOCK hide #-}
 
 #include <libnotify/notify.h>
 

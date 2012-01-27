@@ -1,4 +1,7 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+-- | System.Libnotify.Server module deals with notification server info processing and
+-- initialized applications managing.
+{-# OPTIONS_HADDOCK prune #-}
 
 #include <libnotify/notify.h>
 
@@ -11,6 +14,7 @@ import Foreign
 import Foreign.C
 import System.Glib.GList
 
+-- | Server information.
 data ServerInfo = ServerInfo
   { serverName  :: String
   , serverVender :: String
@@ -18,6 +22,7 @@ data ServerInfo = ServerInfo
   , serverSpecVersion :: String
   } deriving (Eq, Ord, Read, Show)
 
+-- | Returns registered application name.
 getAppName :: IO String
 getAppName = do
   p_appName <- notify_get_app_name
@@ -26,6 +31,7 @@ getAppName = do
 foreign import ccall unsafe "libnotify/notify.h notify_get_app_name"
   notify_get_app_name :: IO CString
 
+-- | Updates registered application name.
 setAppName :: String -> IO ()
 setAppName appName =
   withCString appName $ \p_appName ->
@@ -34,6 +40,7 @@ setAppName appName =
 foreign import ccall unsafe "libnotify/notify.h notify_set_app_name"
   notify_set_app_name :: CString -> IO ()
 
+-- | Returns server capability strings.
 getServerCaps :: IO [String]
 getServerCaps = do
   p_caps <- notify_get_server_caps >>= readGList
@@ -42,6 +49,7 @@ getServerCaps = do
 foreign import ccall unsafe "libnotify/notify.h notify_get_server_caps"
   notify_get_server_caps :: IO GList
 
+-- | Returns server information.
 getServerInfo :: IO ServerInfo
 getServerInfo =
   alloca $ \p_name ->
