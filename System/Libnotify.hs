@@ -8,9 +8,10 @@ module System.Libnotify
   , addAction, clearActions
   , oneShot) where
 
-import Control.Monad.Reader
-import Data.Word (Word8)
+import Control.Monad.Reader (MonadIO, MonadReader, ReaderT, liftIO, runReaderT, ask)
 import Data.Int (Int32)
+import Data.Maybe (fromMaybe)
+import Data.Word (Word8)
 import qualified Data.ByteString as BS
 import Foreign (Ptr)
 
@@ -18,17 +19,14 @@ import qualified System.Libnotify.Internal as N
 import System.Libnotify.Types
 
 withNotifications :: Maybe String -> IO a -> IO ()
-withNotifications a x = do initted <- N.initNotify appName
-                           if initted
-                             then x >> N.uninitNotify
-                             else error "withNotifications: init has failed."
-  where appName = case a of
-                    Just name -> name
-                    Nothing   -> " "
+withNotifications a x = (N.initNotify . fromMaybe " ") a >>= \initted ->
+                        if initted then x >> N.uninitNotify
+                                   else error "withNotifications: init has failed."
 
 oneShot :: Hint a => Title -> Body -> Icon -> [a] -> IO ()
 oneShot t b i hs = withNotifications Nothing $
-                   new t b i $ mapM_ addHint hs >> render
+                   new t b i $
+                   mapM_ addHint hs >> render
 
 new :: Title -> Body -> Icon -> ReaderT (Ptr Notification) IO t -> IO (Ptr Notification)
 new t b i f = do n <- N.newNotify t b i
