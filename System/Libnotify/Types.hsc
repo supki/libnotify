@@ -11,6 +11,7 @@ module System.Libnotify.Types
   , Urgency, getUrgency, notifyUrgencyLow, notifyUrgencyNormal, notifyUrgencyCritical
   , Category
   , Title, Body, Icon
+  , Key
   ) where
 
 import Foreign.C
