@@ -4,8 +4,8 @@ module System.Libnotify
   , withNotifications
   , new, update, render, close
   , timeout, category, urgency
-  , addHint, generalize, clearHints
-  , addAction, clearActions
+  , addHint, generalize, removeHints
+  , addAction, removeActions
   , oneShot) where
 
 import Control.Monad.Reader (MonadIO, MonadReader, ReaderT, liftIO, runReaderT, ask)
@@ -86,11 +86,11 @@ instance Hint (Key,BS.ByteString) where
   addHint (k,v) = ask >>= \n -> liftIO $ N.setHintByteArray n k v
   generalize (k,v) = HintArray k v
 
-clearHints :: (MonadIO m, MonadReader (Ptr Notification) m) => m ()
-clearHints = ask >>= liftIO . N.clearHints
+removeHints :: (MonadIO m, MonadReader (Ptr Notification) m) => m ()
+removeHints = ask >>= liftIO . N.clearHints
 
 addAction :: (MonadIO m, MonadReader (Ptr Notification) m) => String -> String -> (Ptr Notification -> String -> IO ()) -> m ()
 addAction a l c = ask >>= \n -> liftIO $ N.addAction n a l c
 
-clearActions :: (MonadIO m, MonadReader (Ptr Notification) m) => m ()
-clearActions = ask >>= liftIO . N.clearActions
+removeActions :: (MonadIO m, MonadReader (Ptr Notification) m) => m ()
+removeActions = ask >>= liftIO . N.clearActions
