@@ -88,23 +88,23 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_show"
 foreign import ccall unsafe "glib-object.h g_error_free"
   g_error_free :: Ptr GError -> IO ()
 
-setTimeout :: Ptr Notification -> Timeout -> IO ()
-setTimeout notify timeout =
+setTimeout :: Timeout -> Ptr Notification -> IO ()
+setTimeout timeout notify =
   notify_notification_set_timeout notify (getTimeout timeout)
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_timeout"
   notify_notification_set_timeout :: Ptr Notification -> CInt -> IO ()
 
-setCategory :: Ptr Notification -> Category -> IO ()
-setCategory notify category =
+setCategory :: Category -> Ptr Notification -> IO ()
+setCategory category notify =
   withCString category $ \p_category ->
   notify_notification_set_category notify p_category
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_category"
   notify_notification_set_category :: Ptr Notification -> CString -> IO ()
 
-setUrgency :: Ptr Notification -> Urgency -> IO ()
-setUrgency notify urgency =
+setUrgency :: Urgency -> Ptr Notification -> IO ()
+setUrgency urgency notify =
   notify_notification_set_urgency notify (getUrgency urgency)
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_urgency"
