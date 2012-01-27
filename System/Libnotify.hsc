@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
 #include <libnotify/notify.h>
 
@@ -104,7 +104,7 @@ foreign import ccall unsafe "libnotify/notify.h notify_get_server_info"
                          -> (Ptr CString)
                          -> IO Bool
 
-newtype Notification = Notification (Ptr Notification)
+data Notification
 
 newtype NotificationTimeout = NotificationTimeout {getTimeout :: CInt}
 
@@ -115,10 +115,10 @@ newtype Urgency = Urgency CInt
   notifyUrgencyCritical = NOTIFY_URGENCY_CRITICAL
 }
 
-type ActionCallback a = Notification -> CString -> Ptr a -> IO ()
+type ActionCallback a = Ptr Notification -> CString -> Ptr a -> IO ()
 type FreeFunc a = Ptr a -> IO ()
 
-newNotify :: String -> Maybe String -> Maybe String -> IO (Notification)
+newNotify :: String -> Maybe String -> Maybe String -> IO (Ptr Notification)
 newNotify summary body icon =
   withCString summary        $ \p_summary ->
   maybeWith withCString body $ \p_body ->
@@ -129,9 +129,9 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_new"
   notify_notification_new :: CString
                           -> CString
                           -> CString
-                          -> IO (Notification)
+                          -> IO (Ptr Notification)
 
-updateNotify :: Notification -> String -> Maybe String -> Maybe String -> IO Bool
+updateNotify :: Ptr Notification -> String -> Maybe String -> Maybe String -> IO Bool
 updateNotify notify summary body icon =
   withCString summary        $ \p_summary ->
   maybeWith withCString body $ \p_body ->
@@ -139,12 +139,12 @@ updateNotify notify summary body icon =
   notify_notification_update notify p_summary p_body p_icon
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_update"
-  notify_notification_update :: Notification
+  notify_notification_update :: Ptr Notification
                              -> CString
                              -> CString
                              -> CString -> IO Bool
 
-showNotify :: Notification -> IO Bool
+showNotify :: Ptr Notification -> IO Bool
 showNotify notify =
   alloca $ \pp_error -> do
   poke pp_error nullPtr
@@ -157,7 +157,7 @@ showNotify notify =
             throwGError error
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_show"
-  notify_notification_show :: Notification -> Ptr (Ptr GError) -> IO Bool
+  notify_notification_show :: Ptr Notification -> Ptr (Ptr GError) -> IO Bool
 
 foreign import ccall unsafe "glib-object.h g_error_free"
   g_error_free :: Ptr GError -> IO ()
@@ -171,94 +171,94 @@ expiresNever = NotificationTimeout #const NOTIFY_EXPIRES_NEVER
 expires :: Int -> NotificationTimeout
 expires = NotificationTimeout . fromIntegral
 
-setTimeout :: Notification -> NotificationTimeout -> IO ()
+setTimeout :: Ptr Notification -> NotificationTimeout -> IO ()
 setTimeout notify timeout =
   notify_notification_set_timeout notify (getTimeout timeout)
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_timeout"
-  notify_notification_set_timeout :: Notification -> CInt -> IO ()
+  notify_notification_set_timeout :: Ptr Notification -> CInt -> IO ()
 
-setCategory :: Notification -> String -> IO ()
+setCategory :: Ptr Notification -> String -> IO ()
 setCategory notify category =
   withCString category $ \p_category ->
   notify_notification_set_category notify p_category
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_category"
-  notify_notification_set_category :: Notification -> CString -> IO ()
+  notify_notification_set_category :: Ptr Notification -> CString -> IO ()
 
-setUrgency :: Notification -> Urgency -> IO ()
+setUrgency :: Ptr Notification -> Urgency -> IO ()
 setUrgency notify (Urgency urgency) =
   notify_notification_set_urgency notify urgency
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_urgency"
-  notify_notification_set_urgency :: Notification -> CInt -> IO ()
+  notify_notification_set_urgency :: Ptr Notification -> CInt -> IO ()
 
-setIconFromPixbuf :: Notification -> Pixbuf -> IO ()
+setIconFromPixbuf :: Ptr Notification -> Pixbuf -> IO ()
 setIconFromPixbuf notify pixbuf =
   withForeignPtr (unsafeCoerce pixbuf) $ \p_pixbuf ->
   notify_notification_set_icon_from_pixbuf notify p_pixbuf
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_icon_from_pixbuf"
-  notify_notification_set_icon_from_pixbuf :: Notification
+  notify_notification_set_icon_from_pixbuf :: Ptr Notification
                                            -> Ptr Pixbuf
                                            -> IO ()
 
-setImageFromPixbuf :: Notification -> Pixbuf -> IO ()
+setImageFromPixbuf :: Ptr Notification -> Pixbuf -> IO ()
 setImageFromPixbuf notify pixbuf =
   withForeignPtr (unsafeCoerce pixbuf) $ \p_pixbuf ->
   notify_notification_set_image_from_pixbuf notify p_pixbuf
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_image_from_pixbuf"
-  notify_notification_set_image_from_pixbuf :: Notification
+  notify_notification_set_image_from_pixbuf :: Ptr Notification
                                             -> Ptr Pixbuf
                                             -> IO ()
 
-setHintInt32 :: Notification -> String -> Int32 -> IO ()
+setHintInt32 :: Ptr Notification -> String -> Int32 -> IO ()
 setHintInt32 notify key value =
   withCString key $ \p_key ->
   notify_notification_set_hint_int32 notify p_key (fromIntegral value)
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_int32"
-  notify_notification_set_hint_int32 :: Notification
+  notify_notification_set_hint_int32 :: Ptr Notification
                                      -> CString
                                      -> CInt
                                      -> IO ()
 
-setHintDouble :: Notification -> String -> Double -> IO ()
+setHintDouble :: Ptr Notification -> String -> Double -> IO ()
 setHintDouble notify key value =
   withCString key $ \p_key ->
   notify_notification_set_hint_double notify p_key (realToFrac value)
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_double"
-  notify_notification_set_hint_double :: Notification
+  notify_notification_set_hint_double :: Ptr Notification
                                       -> CString
                                       -> CDouble
                                       -> IO ()
 
-setHintString :: Notification -> String -> String -> IO ()
+setHintString :: Ptr Notification -> String -> String -> IO ()
 setHintString notify key value =
   withCString key   $ \p_key ->
   withCString value $ \p_value ->
   notify_notification_set_hint_string notify p_key p_value
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_string"
-  notify_notification_set_hint_string :: Notification
+  notify_notification_set_hint_string :: Ptr Notification
                                       -> CString
                                       -> CString
                                       -> IO ()
 
-setHintByte :: Notification -> String -> Word8 -> IO ()
+setHintByte :: Ptr Notification -> String -> Word8 -> IO ()
 setHintByte notify key value =
   withCString key $ \p_key ->
   notify_notification_set_hint_byte notify p_key (fromIntegral value)
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_byte"
-  notify_notification_set_hint_byte :: Notification
+  notify_notification_set_hint_byte :: Ptr Notification
                                     -> CString
                                     -> CUChar
                                     -> IO ()
 
-setHintByteArray :: Notification -> String -> BS.ByteString -> IO ()
+setHintByteArray :: Ptr Notification -> String -> BS.ByteString -> IO ()
 setHintByteArray notify key value =
   withCString key $ \p_key ->
   withArrayLen (BS.foldr' step [] value) $ \len p_bs ->
@@ -267,23 +267,23 @@ setHintByteArray notify key value =
       step x xs = fromIntegral x:xs
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_byte_array"
-  notify_notification_set_hint_byte_array :: Notification
+  notify_notification_set_hint_byte_array :: Ptr Notification
                                           -> CString
                                           -> Ptr CUChar
                                           -> CSize
                                           -> IO ()
 
-clearHints :: Notification -> IO ()
+clearHints :: Ptr Notification -> IO ()
 clearHints = notify_notification_clear_hints
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_clear_hints"
-  notify_notification_clear_hints :: Notification -> IO ()
+  notify_notification_clear_hints :: Ptr Notification -> IO ()
 
 addAction
-  :: Notification
+  :: Ptr Notification
   -> String
   -> String
-  -> (Notification -> String -> IO ())
+  -> (Ptr Notification -> String -> IO ())
   -> IO ()
 addAction notify action label callback =
   withCString action $ \p_action ->
@@ -307,7 +307,7 @@ foreign import ccall "wrapper"
   wrapFreeFunc :: (FreeFunc a) -> IO (FunPtr (FreeFunc a))
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_add_action"
-  notify_notification_add_action :: Notification
+  notify_notification_add_action :: Ptr Notification
                                  -> CString
                                  -> CString
                                  -> FunPtr (ActionCallback a)
@@ -315,13 +315,13 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_add_action"
                                  -> FunPtr (FreeFunc a)
                                  -> IO ()
 
-clearActions :: Notification -> IO ()
+clearActions :: Ptr Notification -> IO ()
 clearActions = notify_notification_clear_actions
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_clear_actions"
-  notify_notification_clear_actions :: Notification -> IO ()
+  notify_notification_clear_actions :: Ptr Notification -> IO ()
 
-closeNotify :: Notification -> IO Bool
+closeNotify :: Ptr Notification -> IO Bool
 closeNotify notify =
   alloca $ \pp_error -> do
   poke pp_error nullPtr
@@ -334,4 +334,4 @@ closeNotify notify =
             throwGError error
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_close"
-  notify_notification_close :: Notification -> Ptr (Ptr GError) -> IO Bool
+  notify_notification_close :: Ptr Notification -> Ptr (Ptr GError) -> IO Bool

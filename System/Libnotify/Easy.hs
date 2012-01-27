@@ -7,6 +7,7 @@ module System.Libnotify.Easy
 import Data.Word (Word8)
 import Data.Int (Int32)
 import qualified Data.ByteString as BS
+import Foreign (Ptr)
 
 import System.Libnotify
 
@@ -33,7 +34,7 @@ type Key = String
 data GeneralHint = HintInt String Int32 | HintDouble String Double | HintString String String | HintByte String Word8 | HintArray String BS.ByteString
 
 class Hint a where
-  setHint :: Notification -> a -> IO ()
+  setHint :: Ptr Notification -> a -> IO ()
   generalize :: a -> GeneralHint
 
 instance Hint GeneralHint where
