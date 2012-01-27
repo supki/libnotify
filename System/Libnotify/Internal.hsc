@@ -3,9 +3,7 @@
 #include <libnotify/notify.h>
 
 module System.Libnotify.Internal (
-  ServerInfo(..),
   initNotify, uninitNotify, isInitted,
-  getAppName, setAppName, getServerCaps, getServerInfo,
 
   Notification, NotificationTimeout, Urgency,
   newNotify, updateNotify, showNotify,
@@ -15,10 +13,6 @@ module System.Libnotify.Internal (
   addAction, clearActions, closeNotify
 ) where
 
-import Control.Applicative
-import Control.Exception
-import Data.Maybe
-import Data.Word
 import Foreign
 import Foreign.C
 import Graphics.UI.Gtk.Gdk.Pixbuf
@@ -27,13 +21,6 @@ import System.Glib.GList
 import Unsafe.Coerce
 
 import qualified Data.ByteString as BS
-
-data ServerInfo = ServerInfo
-  { serverName  :: String
-  , serverVender :: String
-  , serverVersion :: String
-  , serverSpecVersion :: String
-  } deriving (Eq, Ord, Read, Show)
 
 initNotify :: String -> IO Bool
 initNotify appName =
@@ -54,55 +41,6 @@ isInitted = notify_is_initted
 
 foreign import ccall unsafe "libnotify/notify.h notify_is_initted"
   notify_is_initted :: IO Bool
-
-getAppName :: IO String
-getAppName = do
-  p_appName <- notify_get_app_name
-  peekCString p_appName
-
-foreign import ccall unsafe "libnotify/notify.h notify_get_app_name"
-  notify_get_app_name :: IO CString
-
-setAppName :: String -> IO ()
-setAppName appName =
-  withCString appName $ \p_appName ->
-  notify_set_app_name p_appName
-
-foreign import ccall unsafe "libnotify/notify.h notify_set_app_name"
-  notify_set_app_name :: CString -> IO ()
-
-getServerCaps :: IO [String]
-getServerCaps = do
-  p_caps <- notify_get_server_caps >>= readGList
-  mapM peekCString p_caps
-
-foreign import ccall unsafe "libnotify/notify.h notify_get_server_caps"
-  notify_get_server_caps :: IO GList
-
-getServerInfo :: IO ServerInfo
-getServerInfo =
-  alloca $ \p_name ->
-  alloca $ \p_vender ->
-  alloca $ \p_version ->
-  alloca $ \p_specVersion -> do
-    notify_get_server_info p_name p_vender p_version p_specVersion
-    name        <- peekCString =<< peek p_name
-    vender      <- peekCString =<< peek p_vender
-    version     <- peekCString =<< peek p_version
-    specVersion <- peekCString =<< peek p_specVersion
-    return $ ServerInfo
-      { serverName        = name
-      , serverVender      = vender
-      , serverVersion     = version
-      , serverSpecVersion = specVersion
-      }
-
-foreign import ccall unsafe "libnotify/notify.h notify_get_server_info"
-  notify_get_server_info :: (Ptr CString)
-                         -> (Ptr CString)
-                         -> (Ptr CString)
-                         -> (Ptr CString)
-                         -> IO Bool
 
 data Notification
 
