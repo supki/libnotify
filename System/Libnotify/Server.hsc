@@ -1,11 +1,11 @@
-{-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
 
 #include <libnotify/notify.h>
 
-module System.Libnotify.Server (
-  ServerInfo(..),
-  getAppName, setAppName, getServerCaps, getServerInfo,
-) where
+module System.Libnotify.Server
+  ( ServerInfo(..)
+  , getAppName, setAppName, getServerCaps, getServerInfo
+  ) where
 
 import Foreign
 import Foreign.C

@@ -1,17 +1,15 @@
-{-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
 
 #include <libnotify/notify.h>
 
-module System.Libnotify.Internal (
-  initNotify, uninitNotify, isInitted,
-
-  Notification, NotificationTimeout, Urgency,
-  newNotify, updateNotify, showNotify,
-  setTimeout, expiresDefault, expiresNever, expires,
-  setCategory, setUrgency, setIconFromPixbuf, setImageFromPixbuf,
-  setHintInt32, setHintDouble, setHintString, setHintByte, setHintByteArray, clearHints,
-  addAction, clearActions, closeNotify
-) where
+module System.Libnotify.Internal
+  ( initNotify, uninitNotify, isInitted
+  , newNotify, updateNotify, showNotify
+  , setTimeout, expiresDefault, expiresNever, expires
+  , setCategory, setUrgency, setIconFromPixbuf, setImageFromPixbuf
+  , setHintInt32, setHintDouble, setHintString, setHintByte, setHintByteArray, clearHints
+  , addAction, clearActions, closeNotify
+  ) where
 
 import Foreign
 import Foreign.C
@@ -19,8 +17,9 @@ import Graphics.UI.Gtk.Gdk.Pixbuf
 import System.Glib.GError
 import System.Glib.GList
 import Unsafe.Coerce
-
 import qualified Data.ByteString as BS
+
+import System.Libnotify.Types
 
 initNotify :: String -> IO Bool
 initNotify appName =
@@ -41,17 +40,6 @@ isInitted = notify_is_initted
 
 foreign import ccall unsafe "libnotify/notify.h notify_is_initted"
   notify_is_initted :: IO Bool
-
-data Notification
-
-newtype NotificationTimeout = NotificationTimeout {getTimeout :: CInt}
-
-newtype Urgency = Urgency CInt
-#{enum Urgency, Urgency,
-  notifyUrgencyLow      = NOTIFY_URGENCY_LOW,
-  notifyUrgencyNormal   = NOTIFY_URGENCY_NORMAL,
-  notifyUrgencyCritical = NOTIFY_URGENCY_CRITICAL
-}
 
 type ActionCallback a = Ptr Notification -> CString -> Ptr a -> IO ()
 type FreeFunc a = Ptr a -> IO ()
@@ -100,23 +88,14 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_show"
 foreign import ccall unsafe "glib-object.h g_error_free"
   g_error_free :: Ptr GError -> IO ()
 
-expiresDefault :: NotificationTimeout
-expiresDefault = NotificationTimeout $ #const NOTIFY_EXPIRES_DEFAULT
-
-expiresNever :: NotificationTimeout
-expiresNever = NotificationTimeout #const NOTIFY_EXPIRES_NEVER
-
-expires :: Int -> NotificationTimeout
-expires = NotificationTimeout . fromIntegral
-
-setTimeout :: Ptr Notification -> NotificationTimeout -> IO ()
+setTimeout :: Ptr Notification -> Timeout -> IO ()
 setTimeout notify timeout =
   notify_notification_set_timeout notify (getTimeout timeout)
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_timeout"
   notify_notification_set_timeout :: Ptr Notification -> CInt -> IO ()
 
-setCategory :: Ptr Notification -> String -> IO ()
+setCategory :: Ptr Notification -> Category -> IO ()
 setCategory notify category =
   withCString category $ \p_category ->
   notify_notification_set_category notify p_category
@@ -125,8 +104,8 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_category
   notify_notification_set_category :: Ptr Notification -> CString -> IO ()
 
 setUrgency :: Ptr Notification -> Urgency -> IO ()
-setUrgency notify (Urgency urgency) =
-  notify_notification_set_urgency notify urgency
+setUrgency notify urgency =
+  notify_notification_set_urgency notify (getUrgency urgency)
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_urgency"
   notify_notification_set_urgency :: Ptr Notification -> CInt -> IO ()
