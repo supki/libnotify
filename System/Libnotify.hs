@@ -31,9 +31,10 @@ oneShot t b i hs = withNotifications Nothing $
                    new t b i $ do mapM_ addHint hs
                                   render
 
-new :: Title -> Body -> Icon -> ReaderT (Ptr Notification) IO b -> IO b
+new :: Title -> Body -> Icon -> ReaderT (Ptr Notification) IO t -> IO (Ptr Notification)
 new t b i f = do n <- N.newNotify t b i
-                 runReaderT f n
+                 _ <- runReaderT f n
+                 return n
 
 update :: (MonadIO m, MonadReader (Ptr Notification) m) => Title -> Body -> Icon -> m Bool
 update t b i = do n <- ask
