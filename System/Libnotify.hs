@@ -3,7 +3,7 @@
 {-# OPTIONS_HADDOCK prune #-}
 module System.Libnotify
   ( withNotifications
-  , new, update, render, close
+  , new, session, update, render, close
   , timeout, category, urgency
   , Hint(..), Key, removeHints
   , addAction, removeActions
@@ -41,8 +41,12 @@ oneShot t b i hs = withNotifications Nothing $
 -- Returns notification pointer. This could be useful if one wants to 'update' or 'close' the same notification after some business logic.
 new :: Title -> Body -> Icon -> ReaderT (Ptr Notification) IO t -> IO (Ptr Notification)
 new t b i f = do n <- N.newNotify t b i
-                 _ <- runReaderT f n
+                 _ <- session f n
                  return n
+
+-- | Continues old notification session.
+session :: ReaderT (Ptr Notification) IO a -> (Ptr Notification) -> IO a
+session = runReaderT
 
 -- | Updates notification 'Title', 'Body' and 'Icon'.
 update :: (MonadIO m, MonadReader (Ptr Notification) m) => Title -> Body -> Icon -> m Bool
