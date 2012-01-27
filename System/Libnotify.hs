@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleInstances, FlexibleContexts #-}
-module System.Libnotify.Easy
+module System.Libnotify
   ( withNotifications
   , new, update, render, close
   , timeout, category, urgency
@@ -14,7 +14,7 @@ import qualified Data.ByteString as BS
 import Foreign (Ptr)
 import Prelude hiding (show)
 
-import qualified System.Libnotify as N
+import qualified System.Libnotify.Internal as N
 
 withNotifications :: Maybe String -> IO a -> IO ()
 withNotifications a x = do initted <- N.initNotify appName

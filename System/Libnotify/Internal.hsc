@@ -2,7 +2,7 @@
 
 #include <libnotify/notify.h>
 
-module System.Libnotify (
+module System.Libnotify.Internal (
   ServerInfo(..),
   initNotify, uninitNotify, isInitted,
   getAppName, setAppName, getServerCaps, getServerInfo,

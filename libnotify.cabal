@@ -1,14 +1,14 @@
 Name:		libnotify
-Version:	0.0.0
+Version:	0.0.1.0
 License:	MIT
 Author:		Emon Tsukimiya, Matvey Aksenov
 Category:	System
-Synopsis:	haskell binding for libnotify
+Synopsis:	Haskell binding for Libnotify
 Cabal-Version:	>= 1.6
 Build-Type:	Simple
 
 Library
   Build-Depends:	base, bytestring, glib, gtk, mtl
-  Exposed-Modules:	System.Libnotify, System.Libnotify.Easy
+  Exposed-Modules:	System.Libnotify, System.Libnotify.Internal
   Pkgconfig-Depends:	libnotify
-  Extensions:		EmptyDataDecls, FlexibleInstances
+  Extensions:		EmptyDataDecls, FlexibleInstances, FlexibleContexts
