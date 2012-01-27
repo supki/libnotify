@@ -11,7 +11,7 @@ module System.Libnotify (
   newNotify, updateNotify, showNotify,
   setTimeout, expiresDefault, expiresNever, expires,
   setCategory, setUrgency, setIconFromPixbuf, setImageFromPixbuf,
-  setHintInt32, setHintDouble, setHintString, setHintByte, setHintByteArray,
+  setHintInt32, setHintDouble, setHintString, setHintByte, setHintByteArray, clearHints,
   addAction, clearActions, closeNotify
 ) where
 
