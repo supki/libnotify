@@ -2,20 +2,22 @@
 -- | System.Libnotify module deals with notification session processing.
 {-# OPTIONS_HADDOCK prune #-}
 module System.Libnotify
-  ( withNotifications
+  ( oneShot, withNotifications
   , new, continue, update, render, close
   , setTimeout, setCategory, setUrgency
   , Hint(..), Key, removeHints
   , addAction, removeActions
-  , oneShot
+  , notifyErrorHandler
   ) where
 
+import Control.Exception (throw)
 import Control.Monad.Reader (MonadIO, MonadReader, ReaderT, liftIO, runReaderT, ask)
 import Data.Int (Int32)
 import Data.Maybe (fromMaybe)
 import Data.Word (Word8)
 import qualified Data.ByteString as BS
 import Foreign (Ptr)
+import System.IO (stderr, hPutStrLn)
 
 import qualified System.Libnotify.Internal as N
 import System.Libnotify.Types
@@ -29,13 +31,13 @@ import System.Libnotify.Types
 withNotifications :: Maybe String -> IO a -> IO ()
 withNotifications a x = (N.initNotify . fromMaybe " ") a >>= \initted ->
                         if initted then x >> N.uninitNotify
-                                   else error "withNotifications: init has failed."
+                                   else throw NotifyInitHasFailed
 
 -- | Function for one-time notification with hints perhaps. Should be enough for a vast majority of applications.
 oneShot :: Hint a => Title -> Body -> Icon -> [a] -> IO ()
 oneShot t b i hs = withNotifications Nothing $
-                   new t b i $
-                   mapM_ addHint hs >> render
+                     new t b i $
+                       mapM_ addHint hs >> render
 
 -- | Creates new notification session. Inside 'new' call one can manage current notification via 'update' or 'render' calls.
 -- Returns notification pointer. This could be useful if one wants to 'update' or 'close' the same notification after some business logic.
@@ -45,7 +47,7 @@ new t b i f = N.isInitted >>= \initted ->
                 then do n <- N.newNotify t b i
                         continue n f
                         return n
-                else error "new: Libnotify is not initialized properly."
+                else throw NewCalledBeforeInit
 
 -- | Continues old notification session.
 continue :: (Ptr Notification) -> ReaderT (Ptr Notification) IO a -> IO ()
@@ -123,3 +125,8 @@ addAction a l c = ask >>= \n -> liftIO $ N.addAction n a l c
 -- | Removes actions from notification.
 removeActions :: (MonadIO m, MonadReader (Ptr Notification) m) => m ()
 removeActions = ask >>= liftIO . N.clearActions
+
+-- | Libnotify error handler
+notifyErrorHandler :: NotifyError -> IO ()
+notifyErrorHandler NotifyInitHasFailed = hPutStrLn stderr "withNotifications: init has failed."
+notifyErrorHandler NewCalledBeforeInit = hPutStrLn stderr "new: Libnotify is not initialized properly."

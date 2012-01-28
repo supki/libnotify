@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
+{-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls, DeriveDataTypeable #-}
 -- | System.Libnotify.Types module is a collection of types is used in other modules.
 -- This is reexported with System.Libnotify module. Perhaps it'll never be needed to import explicitly.
 {-# OPTIONS_HADDOCK prune #-}
@@ -13,8 +13,11 @@ module System.Libnotify.Types
   , Title, Body, Icon
   , Key
   , ServerInfo(..)
+  , NotifyError(..)
   ) where
 
+import Control.Exception (Exception)
+import Data.Typeable (Typeable)
 import Foreign.C
 
 data Notification
@@ -58,3 +61,11 @@ data ServerInfo = ServerInfo
   , serverVersion :: String
   , serverSpecVersion :: String
   } deriving (Eq, Ord, Read, Show)
+
+-- | Libnotify errors
+data NotifyError
+  = NotifyInitHasFailed  -- ^ notify_init() has failed.
+  | NewCalledBeforeInit  -- ^ new has called before notify_init().
+  deriving (Show, Typeable)
+
+instance Exception NotifyError
