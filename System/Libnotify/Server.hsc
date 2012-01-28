@@ -6,21 +6,14 @@
 #include <libnotify/notify.h>
 
 module System.Libnotify.Server
-  ( ServerInfo(..)
-  , getAppName, setAppName, getServerCaps, getServerInfo
+  ( getAppName, setAppName, getServerCaps, getServerInfo
   ) where
 
 import Foreign
 import Foreign.C
 import System.Glib.GList
 
--- | Server information.
-data ServerInfo = ServerInfo
-  { serverName  :: String
-  , serverVender :: String
-  , serverVersion :: String
-  , serverSpecVersion :: String
-  } deriving (Eq, Ord, Read, Show)
+import System.Libnotify.Types (ServerInfo(..))
 
 -- | Returns registered application name.
 getAppName :: IO String
@@ -43,6 +36,7 @@ foreign import ccall unsafe "libnotify/notify.h notify_set_app_name"
 -- | Returns server capability strings.
 getServerCaps :: IO [String]
 getServerCaps = do
+  g_type_init
   p_caps <- notify_get_server_caps >>= readGList
   mapM peekCString p_caps
 
@@ -53,17 +47,18 @@ foreign import ccall unsafe "libnotify/notify.h notify_get_server_caps"
 getServerInfo :: IO ServerInfo
 getServerInfo =
   alloca $ \p_name ->
-  alloca $ \p_vender ->
+  alloca $ \p_vendor ->
   alloca $ \p_version ->
   alloca $ \p_specVersion -> do
-    notify_get_server_info p_name p_vender p_version p_specVersion
+    g_type_init
+    notify_get_server_info p_name p_vendor p_version p_specVersion
     name        <- peekCString =<< peek p_name
-    vender      <- peekCString =<< peek p_vender
+    vendor      <- peekCString =<< peek p_vendor
     version     <- peekCString =<< peek p_version
     specVersion <- peekCString =<< peek p_specVersion
     return $ ServerInfo
       { serverName        = name
-      , serverVender      = vender
+      , serverVendor      = vendor
       , serverVersion     = version
       , serverSpecVersion = specVersion
       }
@@ -74,4 +69,7 @@ foreign import ccall unsafe "libnotify/notify.h notify_get_server_info"
                          -> (Ptr CString)
                          -> (Ptr CString)
                          -> IO Bool
+
+foreign import ccall safe "g_type_init"
+  g_type_init :: IO ()
 

@@ -12,6 +12,7 @@ module System.Libnotify.Types
   , Category
   , Title, Body, Icon
   , Key
+  , ServerInfo(..)
   ) where
 
 import Foreign.C
@@ -49,3 +50,11 @@ type Icon = Maybe String
 
 -- | Type synonym for 'Hint' key type
 type Key = String
+
+-- | Server information.
+data ServerInfo = ServerInfo
+  { serverName  :: String
+  , serverVendor :: String
+  , serverVersion :: String
+  , serverSpecVersion :: String
+  } deriving (Eq, Ord, Read, Show)

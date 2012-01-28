@@ -4,7 +4,7 @@
 module System.Libnotify
   ( withNotifications
   , new, session, update, render, close
-  , timeout, category, urgency
+  , setTimeout, setCategory, setUrgency
   , Hint(..), Key, removeHints
   , addAction, removeActions
   , oneShot
@@ -40,13 +40,16 @@ oneShot t b i hs = withNotifications Nothing $
 -- | Creates new notification session. Inside 'new' call one can manage current notification via 'update' or 'render' calls.
 -- Returns notification pointer. This could be useful if one wants to 'update' or 'close' the same notification after some business logic.
 new :: Title -> Body -> Icon -> ReaderT (Ptr Notification) IO t -> IO (Ptr Notification)
-new t b i f = do n <- N.newNotify t b i
-                 _ <- session f n
-                 return n
+new t b i f = N.isInitted >>= \initted ->
+              if initted
+                then do n <- N.newNotify t b i
+                        session f n
+                        return n
+                else error "new: Libnotify is not initialized properly."
 
 -- | Continues old notification session.
-session :: ReaderT (Ptr Notification) IO a -> (Ptr Notification) -> IO a
-session = runReaderT
+session :: ReaderT (Ptr Notification) IO a -> (Ptr Notification) -> IO ()
+session f n = runReaderT f n >> return ()
 
 -- | Updates notification 'Title', 'Body' and 'Icon'.
 update :: (MonadIO m, MonadReader (Ptr Notification) m) => Title -> Body -> Icon -> m Bool
@@ -61,16 +64,16 @@ close :: (MonadIO m, MonadReader (Ptr Notification) m) => m Bool
 close = ask >>= liftIO . N.closeNotify
 
 -- | Sets notification 'Timeout'.
-timeout :: (MonadIO m, MonadReader (Ptr Notification) m) => Timeout -> m ()
-timeout t = ask >>= liftIO . N.setTimeout t
+setTimeout :: (MonadIO m, MonadReader (Ptr Notification) m) => Timeout -> m ()
+setTimeout t = ask >>= liftIO . N.setTimeout t
 
 -- | Sets notification 'Category'.
-category :: (MonadIO m, MonadReader (Ptr Notification) m) => Category -> m ()
-category c = ask >>= liftIO . N.setCategory c
+setCategory :: (MonadIO m, MonadReader (Ptr Notification) m) => Category -> m ()
+setCategory c = ask >>= liftIO . N.setCategory c
 
 -- | Sets notification 'Urgency'.
-urgency :: (MonadIO m, MonadReader (Ptr Notification) m) => Urgency -> m ()
-urgency u = ask >>= liftIO . N.setUrgency u
+setUrgency :: (MonadIO m, MonadReader (Ptr Notification) m) => Urgency -> m ()
+setUrgency u = ask >>= liftIO . N.setUrgency u
 
 data GeneralHint = HintInt String Int32 | HintDouble String Double | HintString String String | HintByte String Word8 | HintArray String BS.ByteString
 
