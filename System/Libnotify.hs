@@ -50,7 +50,7 @@ new t b i f = N.isInitted >>= \initted ->
                 else throw NewCalledBeforeInit
 
 -- | Continues old notification session.
-continue :: (Notification) -> ReaderT Notification IO a -> IO ()
+continue :: Notification -> ReaderT Notification IO a -> IO ()
 continue n f = runReaderT f n >> return ()
 
 -- | Updates notification 'Title', 'Body' and 'Icon'.
