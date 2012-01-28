@@ -20,18 +20,18 @@ import Data.Typeable (Typeable)
 import Foreign (Ptr)
 import Foreign.C
 
--- | Timeout in seconds after which notification is closed
+-- | Timeout in seconds after which notification is closed.
 newtype Timeout = Timeout {getTimeout :: CInt}
 #{enum Timeout, Timeout,
   expiresDefault = NOTIFY_EXPIRES_DEFAULT,
   expiresNever   = NOTIFY_EXPIRES_NEVER
 }
 
--- | Sets custom 'Timeout'
+-- | Sets custom 'Timeout'.
 expires :: Int -> Timeout
 expires = Timeout . fromIntegral
 
--- | Urgency can be used by the notification server to filter or display the data in a certain way
+-- | Urgency can be used by the notification server to filter or display the data in a certain way.
 newtype Urgency = Urgency {getUrgency :: CInt}
 #{enum Urgency, Urgency,
   notifyUrgencyLow      = NOTIFY_URGENCY_LOW,
@@ -39,17 +39,17 @@ newtype Urgency = Urgency {getUrgency :: CInt}
   notifyUrgencyCritical = NOTIFY_URGENCY_CRITICAL
 }
 
--- | Category can be used by the notification server to filter or display the data in a certain way
+-- | Category can be used by the notification server to filter or display the data in a certain way.
 type Category = String
 
--- | Type synonim for notification title. Required.
+-- | Type synonim for notification title.
 type Title = String
--- | Type synonim for notification body. Optional.
+-- | Type synonim for notification body.
 type Body = String
--- | Type synonim for notification icon. Optional.
+-- | Type synonim for notification icon.
 type Icon = String
 
--- | Type synonym for 'Hint' key type
+-- | Type synonym for 'Hint' key type.
 type Key = String
 
 -- | Server information.
@@ -58,12 +58,12 @@ data ServerInfo = ServerInfo
   , serverVendor :: String
   , serverVersion :: String
   , serverSpecVersion :: String
-  } deriving (Eq, Ord, Read, Show)
+  } deriving Show
 
--- | Libnotify errors
+-- | Libnotify errors.
 data NotifyError
   = NotifyInitHasFailed  -- ^ notify_init() has failed.
-  | NewCalledBeforeInit  -- ^ new has called before notify_init().
+  | NewCalledBeforeInit  -- ^ 'new' has called before notify_init().
   deriving (Show, Typeable)
 
 instance Exception NotifyError

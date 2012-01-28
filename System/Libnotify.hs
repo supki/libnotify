@@ -5,7 +5,7 @@ module System.Libnotify
   ( oneShot, withNotifications
   , new, continue, update, render, close
   , setTimeout, setCategory, setUrgency
-  , Hint(..), Key, removeHints
+  , Hint(..), GeneralHint, removeHints
   , addAction, removeActions
   , notifyErrorHandler
   ) where
@@ -30,7 +30,7 @@ data Session = Session
                  }
 
 {-|
-  Initializes and Uninitializes libnotify API.
+  Initializes and uninitializes libnotify API.
   Any notifications API calls should be wrapped into @withNotifications@, i.e.
 
   > main = withNotifications (Just "api-name") $ do { ... here are notification API calls ... }
@@ -48,7 +48,7 @@ oneShot t b i hs = withNotifications Nothing $
                        mapM_ addHint hs >> render
 
 -- | Creates new notification session. Inside 'new' call one can manage current notification via 'update' or 'render' calls.
--- Returns notification pointer. This could be useful if one wants to 'update' or 'close' the same notification after some time.
+-- Returns notification pointer. This could be useful if one wants to 'update' or 'close' the same notification after some time (see 'continue').
 new :: Title -> Body -> Icon -> ReaderT Session IO t -> IO Session
 new t b i f = N.isInitted >>= \initted ->
               if initted
@@ -90,6 +90,7 @@ setCategory c = ask >>= liftIO . N.setCategory c . notification
 setUrgency :: (MonadIO m, MonadReader Session m) => Urgency -> m ()
 setUrgency u = ask >>= liftIO . N.setUrgency u . notification
 
+-- | Instance of 'Hint' class. Useful for 'oneShot' calls with empty hint list.
 data GeneralHint = HintInt String Int32 | HintDouble String Double | HintString String String | HintByte String Word8 | HintArray String BS.ByteString
 
 -- | Hint is some setting (server-dependent) which comes with notification.
