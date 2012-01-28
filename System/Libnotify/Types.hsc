@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls, DeriveDataTypeable #-}
+{-# LANGUAGE ForeignFunctionInterface, DeriveDataTypeable #-}
 -- | System.Libnotify.Types module is a collection of types is used in other modules.
 -- This is reexported with System.Libnotify module. Perhaps it'll never be needed to import explicitly.
 {-# OPTIONS_HADDOCK prune #-}
@@ -18,9 +18,11 @@ module System.Libnotify.Types
 
 import Control.Exception (Exception)
 import Data.Typeable (Typeable)
+import Foreign (Ptr)
 import Foreign.C
 
-data Notification
+-- | Notification session pointer
+newtype Notification = Notification (Ptr Notification)
 
 -- | Timeout in seconds after which notification is closed
 newtype Timeout = Timeout {getTimeout :: CInt}
