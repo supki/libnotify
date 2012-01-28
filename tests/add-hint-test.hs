@@ -9,10 +9,8 @@ main = withNotifications Nothing $ (homogeneous >> geterogeneous)
 
 homogeneous = do new "Same title" (Just "line 1") Nothing $ do addHint ("append","allowed")
                                                                render
-                 threadDelay timeout
                  new "Same title" (Just "line 2") Nothing $ do addHint ("append","allowed")
                                                                render
-                 threadDelay timeout
                  new "Same title" (Just "line 3") Nothing $ do addHint ("append","allowed")
                                                                render
 
