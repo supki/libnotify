@@ -6,8 +6,7 @@
 #include <libnotify/notify.h>
 
 module System.Libnotify.Types
-  ( Notification
-  , Timeout, getTimeout, expiresDefault, expiresNever, expires
+  ( Timeout, getTimeout, expiresDefault, expiresNever, expires
   , Urgency, getUrgency, notifyUrgencyLow, notifyUrgencyNormal, notifyUrgencyCritical
   , Category
   , Title, Body, Icon
@@ -20,9 +19,6 @@ import Control.Exception (Exception)
 import Data.Typeable (Typeable)
 import Foreign (Ptr)
 import Foreign.C
-
--- | Notification session pointer
-newtype Notification = Notification (Ptr Notification)
 
 -- | Timeout in seconds after which notification is closed
 newtype Timeout = Timeout {getTimeout :: CInt}
@@ -49,9 +45,9 @@ type Category = String
 -- | Type synonim for notification title. Required.
 type Title = String
 -- | Type synonim for notification body. Optional.
-type Body = Maybe String
+type Body = String
 -- | Type synonim for notification icon. Optional.
-type Icon = Maybe String
+type Icon = String
 
 -- | Type synonym for 'Hint' key type
 type Key = String

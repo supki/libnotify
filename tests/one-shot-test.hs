@@ -3,4 +3,4 @@
 import System.Libnotify (oneShot)
 
 main :: IO ()
-main = oneShot "Title" (Just "Body") (Just "dialog-information") ([] :: [(String,String)])
+main = oneShot "Title" "Body" "dialog-information" ([] :: [(String,String)])

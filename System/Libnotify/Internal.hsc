@@ -6,7 +6,8 @@
 #include <libnotify/notify.h>
 
 module System.Libnotify.Internal
-  ( initNotify, uninitNotify, isInitted
+  ( Notification
+  , initNotify, uninitNotify, isInitted
   , newNotify, updateNotify, showNotify
   , setTimeout, expiresDefault, expiresNever, expires
   , setCategory, setUrgency, setIconFromPixbuf, setImageFromPixbuf
@@ -23,6 +24,9 @@ import Unsafe.Coerce
 import qualified Data.ByteString as BS
 
 import System.Libnotify.Types
+
+-- | Notification session pointer
+newtype Notification = Notification (Ptr Notification)
 
 initNotify :: String -> IO Bool
 initNotify appName =

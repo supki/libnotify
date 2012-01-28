@@ -7,8 +7,8 @@ import System.Libnotify
 main :: IO ()
 main = tryWithout >> tryWith >> return ()
   where tryWithout = handle notifyErrorHandler $
-                       new "Title" (Just "Without") (Just "dialog-information") render >> return ()
+                       new "Title" "Without" "dialog-information" render >> return ()
         tryWith = withNotifications Nothing $
-                    new "Title" (Just "With") (Just "dialog-information") render
+                    new "Title" "With" "dialog-information" render
 
 

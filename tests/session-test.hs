@@ -6,9 +6,8 @@ import Control.Concurrent (threadDelay)
 
 main :: IO ()
 main = withNotifications Nothing $
-         do n <- new "Some title" (Just "some text") (Just "dialog-information")
-              render
-            threadDelay 10000000
-            continue n $
-              do update "Another title" (Just "another text") (Just "dialog-question")
+         do s <- new "Some title" "some text" "dialog-information" render
+            threadDelay 1000000
+            continue s $
+              do update Nothing (Just "another text") (Just "dialog-question")
                  render

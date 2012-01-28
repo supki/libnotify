@@ -21,6 +21,14 @@ import System.IO (stderr, hPutStrLn)
 import qualified System.Libnotify.Internal as N
 import System.Libnotify.Types
 
+-- | Notification session. Saves notification initial state.
+data Session = Session
+                 { notification :: N.Notification
+                 , title :: Title
+                 , body :: Body
+                 , icon :: Icon
+                 }
+
 {-|
   Initializes and Uninitializes libnotify API.
   Any notifications API calls should be wrapped into @withNotifications@, i.e.
@@ -40,49 +48,54 @@ oneShot t b i hs = withNotifications Nothing $
                        mapM_ addHint hs >> render
 
 -- | Creates new notification session. Inside 'new' call one can manage current notification via 'update' or 'render' calls.
--- Returns notification pointer. This could be useful if one wants to 'update' or 'close' the same notification after some business logic.
-new :: Title -> Body -> Icon -> ReaderT Notification IO t -> IO Notification
+-- Returns notification pointer. This could be useful if one wants to 'update' or 'close' the same notification after some time.
+new :: Title -> Body -> Icon -> ReaderT Session IO t -> IO Session
 new t b i f = N.isInitted >>= \initted ->
               if initted
-                then do n <- N.newNotify t b i
-                        continue n f
-                        return n
+                then do n <- N.newNotify t (listToMaybeAll b) (listToMaybeAll i)
+                        continue (Session n t b i) f
+                        return (Session n t b i)
                 else throw NewCalledBeforeInit
 
 -- | Continues old notification session.
-continue :: Notification -> ReaderT Notification IO a -> IO ()
-continue n f = runReaderT f n >> return ()
+continue :: Session -> ReaderT Session IO a -> IO ()
+continue s f = runReaderT f s >> return ()
 
 -- | Updates notification 'Title', 'Body' and 'Icon'.
-update :: (MonadIO m, MonadReader Notification m) => Title -> Body -> Icon -> m Bool
-update t b i = ask >>= \n -> liftIO $ N.updateNotify n t b i
+-- User can update notification partially, passing Nothing to arguments that should not changed.
+update :: (MonadIO m, MonadReader Session m) => Maybe Title -> Maybe Body -> Maybe Icon -> m Bool
+update nt nb ni = ask >>= \(Session n t b i) ->
+                    liftIO $ N.updateNotify n
+                               (fromMaybe t nt)
+                               (listToMaybeAll (fromMaybe b nb))
+                               (listToMaybeAll (fromMaybe i ni))
 
 -- | Shows notification to user.
-render :: (MonadIO m, MonadReader Notification m) => m Bool
-render = ask >>= liftIO . N.showNotify
+render :: (MonadIO m, MonadReader Session m) => m Bool
+render = ask >>= liftIO . N.showNotify . notification
 
 -- | Closes notification.
-close :: (MonadIO m, MonadReader Notification m) => m Bool
-close = ask >>= liftIO . N.closeNotify
+close :: (MonadIO m, MonadReader Session m) => m Bool
+close = ask >>= liftIO . N.closeNotify . notification
 
 -- | Sets notification 'Timeout'.
-setTimeout :: (MonadIO m, MonadReader Notification m) => Timeout -> m ()
-setTimeout t = ask >>= liftIO . N.setTimeout t
+setTimeout :: (MonadIO m, MonadReader Session m) => Timeout -> m ()
+setTimeout t = ask >>= liftIO . N.setTimeout t . notification
 
 -- | Sets notification 'Category'.
-setCategory :: (MonadIO m, MonadReader Notification m) => Category -> m ()
-setCategory c = ask >>= liftIO . N.setCategory c
+setCategory :: (MonadIO m, MonadReader Session m) => Category -> m ()
+setCategory c = ask >>= liftIO . N.setCategory c . notification
 
 -- | Sets notification 'Urgency'.
-setUrgency :: (MonadIO m, MonadReader Notification m) => Urgency -> m ()
-setUrgency u = ask >>= liftIO . N.setUrgency u
+setUrgency :: (MonadIO m, MonadReader Session m) => Urgency -> m ()
+setUrgency u = ask >>= liftIO . N.setUrgency u . notification
 
 data GeneralHint = HintInt String Int32 | HintDouble String Double | HintString String String | HintByte String Word8 | HintArray String BS.ByteString
 
 -- | Hint is some setting (server-dependent) which comes with notification.
 class Hint a where
   -- | Adds 'Hint' to notification.
-  addHint :: a -> (MonadIO m, MonadReader Notification m) => m ()
+  addHint :: a -> (MonadIO m, MonadReader Session m) => m ()
   -- | Generalizes 'Hint' to some type. Could be useful if one wants to pass list of distinct hints types.
   generalize :: a -> GeneralHint
 
@@ -95,38 +108,42 @@ instance Hint GeneralHint where
   generalize = id
 
 instance Hint (Key,Int32) where
-  addHint (k,v) = ask >>= \n -> liftIO $ N.setHintInt32 n k v
+  addHint (k,v) = ask >>= \s -> liftIO $ N.setHintInt32 (notification s) k v
   generalize (k,v) = HintInt k v
 
 instance Hint (Key,Double) where
-  addHint (k,v) = ask >>= \n -> liftIO $ N.setHintDouble n k v
+  addHint (k,v) = ask >>= \s -> liftIO $ N.setHintDouble (notification s) k v
   generalize (k,v) = HintDouble k v
 
 instance Hint (Key,String) where
-  addHint (k,v) = ask >>= \n -> liftIO $ N.setHintString n k v
+  addHint (k,v) = ask >>= \s -> liftIO $ N.setHintString (notification s) k v
   generalize (k,v) = HintString k v
 
 instance Hint (Key,Word8) where
-  addHint (k,v) = ask >>= \n -> liftIO $ N.setHintByte n k v
+  addHint (k,v) = ask >>= \s -> liftIO $ N.setHintByte (notification s) k v
   generalize (k,v) = HintByte k v
 
 instance Hint (Key,BS.ByteString) where
-  addHint (k,v) = ask >>= \n -> liftIO $ N.setHintByteArray n k v
+  addHint (k,v) = ask >>= \s -> liftIO $ N.setHintByteArray (notification s) k v
   generalize (k,v) = HintArray k v
 
 -- | Removes hints from notification.
-removeHints :: (MonadIO m, MonadReader Notification m) => m ()
-removeHints = ask >>= liftIO . N.clearHints
+removeHints :: (MonadIO m, MonadReader Session m) => m ()
+removeHints = ask >>= liftIO . N.clearHints . notification
 
 -- | Adds action to notification.
-addAction :: (MonadIO m, MonadReader Notification m) => String -> String -> (Notification -> String -> IO ()) -> m ()
-addAction a l c = ask >>= \n -> liftIO $ N.addAction n a l c
+addAction :: (MonadIO m, MonadReader Session m) => String -> String -> (N.Notification -> String -> IO ()) -> m ()
+addAction a l c = ask >>= \s -> liftIO $ N.addAction (notification s) a l c
 
 -- | Removes actions from notification.
-removeActions :: (MonadIO m, MonadReader Notification m) => m ()
-removeActions = ask >>= liftIO . N.clearActions
+removeActions :: (MonadIO m, MonadReader Session m) => m ()
+removeActions = ask >>= liftIO . N.clearActions . notification
 
 -- | Libnotify error handler
 notifyErrorHandler :: NotifyError -> IO ()
 notifyErrorHandler NotifyInitHasFailed = hPutStrLn stderr "withNotifications: init has failed."
 notifyErrorHandler NewCalledBeforeInit = hPutStrLn stderr "new: Libnotify is not initialized properly."
+
+listToMaybeAll :: [a] -> Maybe [a]
+listToMaybeAll [] = Nothing
+listToMaybeAll xs = Just xs
