@@ -3,7 +3,7 @@
 {-# OPTIONS_HADDOCK prune #-}
 module System.Libnotify
   ( withNotifications
-  , new, session, update, render, close
+  , new, continue, update, render, close
   , setTimeout, setCategory, setUrgency
   , Hint(..), Key, removeHints
   , addAction, removeActions
@@ -43,13 +43,13 @@ new :: Title -> Body -> Icon -> ReaderT (Ptr Notification) IO t -> IO (Ptr Notif
 new t b i f = N.isInitted >>= \initted ->
               if initted
                 then do n <- N.newNotify t b i
-                        session f n
+                        continue n f
                         return n
                 else error "new: Libnotify is not initialized properly."
 
 -- | Continues old notification session.
-session :: ReaderT (Ptr Notification) IO a -> (Ptr Notification) -> IO ()
-session f n = runReaderT f n >> return ()
+continue :: (Ptr Notification) -> ReaderT (Ptr Notification) IO a -> IO ()
+continue n f = runReaderT f n >> return ()
 
 -- | Updates notification 'Title', 'Body' and 'Icon'.
 update :: (MonadIO m, MonadReader (Ptr Notification) m) => Title -> Body -> Icon -> m Bool
