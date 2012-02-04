@@ -9,8 +9,8 @@ module System.Libnotify.Internal
   ( Notification
   , initNotify, uninitNotify, isInitted
   , newNotify, updateNotify, showNotify
-  , setTimeout, expiresDefault, expiresNever, expires
-  , setCategory, setUrgency, setIconFromPixbuf, setImageFromPixbuf
+  , setTimeout, setCategory, setUrgency
+  , setIconFromPixbuf, setImageFromPixbuf
   , setHintInt32, setHintDouble, setHintString, setHintByte, setHintByteArray, clearHints
   , addAction, clearActions, closeNotify
   ) where
@@ -98,6 +98,10 @@ foreign import ccall unsafe "glib-object.h g_error_free"
 setTimeout :: Timeout -> Notification -> IO ()
 setTimeout timeout notify =
   notify_notification_set_timeout notify (getTimeout timeout)
+  where getTimeout :: Timeout -> CInt
+        getTimeout Default    = #const NOTIFY_EXPIRES_DEFAULT
+        getTimeout Infinite   = #const NOTIFY_EXPIRES_NEVER
+        getTimeout (Custom t) = fromIntegral t
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_timeout"
   notify_notification_set_timeout :: Notification -> CInt -> IO ()
@@ -110,20 +114,13 @@ setCategory category notify =
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_category"
   notify_notification_set_category :: Notification -> CString -> IO ()
 
-newtype CUrgency = CUrgency {getUrgency :: CInt}
-#{enum CUrgency, CUrgency,
-  notifyUrgencyLow      = NOTIFY_URGENCY_LOW,
-  notifyUrgencyNormal   = NOTIFY_URGENCY_NORMAL,
-  notifyUrgencyCritical = NOTIFY_URGENCY_CRITICAL
-}
-
 setUrgency :: Urgency -> Notification -> IO ()
 setUrgency urgency notify =
-  notify_notification_set_urgency notify (getUrgency $ toCUrgency urgency)
-  where toCUrgency :: Urgency -> CUrgency
-        toCUrgency Low      = notifyUrgencyLow
-        toCUrgency Normal   = notifyUrgencyNormal
-        toCUrgency Critical = notifyUrgencyCritical
+  notify_notification_set_urgency notify (getUrgency urgency)
+  where getUrgency :: Urgency -> CInt
+        getUrgency Low      = #const NOTIFY_URGENCY_LOW
+        getUrgency Normal   = #const NOTIFY_URGENCY_NORMAL
+        getUrgency Critical = #const NOTIFY_URGENCY_CRITICAL
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_urgency"
   notify_notification_set_urgency :: Notification -> CInt -> IO ()

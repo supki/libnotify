@@ -6,8 +6,7 @@
 #include <libnotify/notify.h>
 
 module System.Libnotify.Types
-  ( Timeout, getTimeout, expiresDefault, expiresNever, expires
-  , Urgency(..), Category
+  ( Timeout(..), Urgency(..), Category
   , Title, Body, Icon
   , Key
   , ServerInfo(..)
@@ -19,19 +18,12 @@ import Data.Typeable (Typeable)
 import Foreign.C
 
 -- | Urgency can be used by the notification server to prioritize notifications.
--- Although urgency does not work in notify-osd nor notification-daemon.
+-- Although urgency does not work with notify-osd.
 data Urgency = Low | Normal | Critical
 
 -- | Timeout in seconds after which notification is closed.
-newtype Timeout = Timeout {getTimeout :: CInt}
-#{enum Timeout, Timeout,
-  expiresDefault = NOTIFY_EXPIRES_DEFAULT,
-  expiresNever   = NOTIFY_EXPIRES_NEVER
-}
-
--- | Sets custom 'Timeout'.
-expires :: Int -> Timeout
-expires = Timeout . fromIntegral
+-- Although timeout does not work with notify-osd.
+data Timeout = Default | Custom Int | Infinite
 
 -- | Category can be used by the notification server to filter or display the data in a certain way.
 type Category = String

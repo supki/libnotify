@@ -9,10 +9,11 @@ main = withNotifications Nothing $
          do _ <- new "Some title" "some text" "dialog-information" $
               do setUrgency Low
                  render
-            threadDelay 1000000
+            threadDelay 2000000
             _ <- new "Some title" "some text" "dialog-question" $
               do setUrgency Normal
                  render
+            threadDelay 2000000
             _ <- new "Another title" "another text" "dialog-question" $
               do setUrgency Critical
                  render
