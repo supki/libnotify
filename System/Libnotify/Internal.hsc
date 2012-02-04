@@ -110,9 +110,20 @@ setCategory category notify =
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_category"
   notify_notification_set_category :: Notification -> CString -> IO ()
 
+newtype CUrgency = CUrgency {getUrgency :: CInt}
+#{enum CUrgency, CUrgency,
+  notifyUrgencyLow      = NOTIFY_URGENCY_LOW,
+  notifyUrgencyNormal   = NOTIFY_URGENCY_NORMAL,
+  notifyUrgencyCritical = NOTIFY_URGENCY_CRITICAL
+}
+
 setUrgency :: Urgency -> Notification -> IO ()
 setUrgency urgency notify =
-  notify_notification_set_urgency notify (getUrgency urgency)
+  notify_notification_set_urgency notify (getUrgency $ toCUrgency urgency)
+  where toCUrgency :: Urgency -> CUrgency
+        toCUrgency Low      = notifyUrgencyLow
+        toCUrgency Normal   = notifyUrgencyNormal
+        toCUrgency Critical = notifyUrgencyCritical
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_urgency"
   notify_notification_set_urgency :: Notification -> CInt -> IO ()
