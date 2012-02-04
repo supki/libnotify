@@ -1,5 +1,5 @@
 Name:		libnotify
-Version:	0.0.1.1
+Version:	0.0.1.2
 Description:	Usable binding to libnotify library.
 License:	MIT
 License-file:	LICENSE
@@ -23,4 +23,4 @@ source-repository head
 source-repository this
   type:     git
   location: https://github.com/supki/haskell-libnotify
-  tag:      v0.0.1.1
+  tag:      v0.0.1.2
