@@ -16,11 +16,17 @@ import Data.Typeable (Typeable)
 
 -- | Urgency can be used by the notification server to prioritize notifications.
 -- Although urgency does not work with notify-osd.
-data Urgency = Low | Normal | Critical
+data Urgency
+       = Low -- ^ Low priority notification.
+       | Normal -- ^ Default notification urgency.
+       | Critical -- ^ Critical notification that requires immediate attention.
 
 -- | Timeout in seconds after which notification is closed.
 -- Although timeout does not work with notify-osd.
-data Timeout = Default | Custom Int | Infinite
+data Timeout
+       = Default -- ^ Default server timeout.
+       | Custom Int -- ^ User defined timeout (in milliseconds).
+       | Infinite -- ^ Notification will not expire until user pays attention to it.
 
 -- | Category can be used by the notification server to filter or display the data in a certain way.
 type Category = String
