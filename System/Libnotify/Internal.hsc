@@ -15,11 +15,11 @@ module System.Libnotify.Internal
   , addAction, clearActions, closeNotify
   ) where
 
+import Control.Exception (throw)
 import Foreign
 import Foreign.C
 import Graphics.UI.Gtk.Gdk.Pixbuf
-import System.Glib.GError
-import System.Glib.GList
+import System.Glib.GError (GError)
 import Unsafe.Coerce
 import qualified Data.ByteString as BS
 
@@ -85,9 +85,9 @@ showNotify notify =
   p_error <- peek pp_error
   if p_error == nullPtr
     then return result
-    else do error <- peek p_error
+    else do gerror <- peek p_error
             g_error_free p_error
-            throwGError error
+            throw gerror
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_show"
   notify_notification_show :: Notification -> Ptr (Ptr GError) -> IO Bool
@@ -125,8 +125,8 @@ setUrgency urgency notify =
 foreign import ccall unsafe "libnotify/notify.h notify_notification_set_urgency"
   notify_notification_set_urgency :: Notification -> CInt -> IO ()
 
-setIconFromPixbuf :: Notification -> Pixbuf -> IO ()
-setIconFromPixbuf notify pixbuf =
+setIconFromPixbuf :: Pixbuf -> Notification -> IO ()
+setIconFromPixbuf pixbuf notify =
   withForeignPtr (unsafeCoerce pixbuf) $ \p_pixbuf ->
   notify_notification_set_icon_from_pixbuf notify p_pixbuf
 
@@ -135,8 +135,8 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_icon_fro
                                            -> Ptr Pixbuf
                                            -> IO ()
 
-setImageFromPixbuf :: Notification -> Pixbuf -> IO ()
-setImageFromPixbuf notify pixbuf =
+setImageFromPixbuf :: Pixbuf -> Notification -> IO ()
+setImageFromPixbuf pixbuf notify =
   withForeignPtr (unsafeCoerce pixbuf) $ \p_pixbuf ->
   notify_notification_set_image_from_pixbuf notify p_pixbuf
 
@@ -261,9 +261,9 @@ closeNotify notify =
   p_error <- peek pp_error
   if p_error == nullPtr
     then return result
-    else do error <- peek p_error
+    else do gerror <- peek p_error
             g_error_free p_error
-            throwGError error
+            throw gerror
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_close"
   notify_notification_close :: Notification -> Ptr (Ptr GError) -> IO Bool

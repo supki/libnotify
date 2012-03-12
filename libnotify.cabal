@@ -1,5 +1,5 @@
 Name:		libnotify
-Version:	0.0.1.2
+Version:	0.0.2.0
 Description:	Usable binding to libnotify library.
 License:	MIT
 License-file:	LICENSE
@@ -15,6 +15,7 @@ Library
   Exposed-Modules:	System.Libnotify, System.Libnotify.Internal, System.Libnotify.Server, System.Libnotify.Types
   Pkgconfig-Depends:	libnotify
   Extensions:		DeriveDataTypeable, FlexibleInstances, FlexibleContexts
+  GHC-options: -Wall
 
 source-repository head
   type:     git
