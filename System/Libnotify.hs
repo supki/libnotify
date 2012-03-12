@@ -5,10 +5,11 @@ module System.Libnotify
   ( oneShot, withNotifications
   , new, continue, update, render, close
   , setTimeout, setCategory, setUrgency
-  , Hint(..), GeneralHint, removeHints
+  , addHint, removeHints
   , addAction, removeActions
   , notifyErrorHandler
   , setIconFromPixbuf, setImageFromPixbuf
+  , module System.Libnotify.Types
   ) where
 
 import Control.Exception (throw)
@@ -16,10 +17,7 @@ import Control.Monad (void)
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.State (StateT, get, put, runStateT)
 import Control.Monad.Trans (MonadIO, liftIO)
-import Data.Int (Int32)
 import Data.Maybe (fromMaybe)
-import Data.Word (Word8)
-import qualified Data.ByteString as BS
 import Graphics.UI.Gtk.Gdk.Pixbuf (Pixbuf)
 import System.IO (stderr, hPutStrLn)
 
@@ -46,8 +44,8 @@ withNotifications a x = (N.initNotify . fromMaybe " ") a >>= \initted ->
                           else throw NotifyInitHasFailed
 
 -- | Function for one-time notification with hints perhaps. Should be enough for a vast majority of applications.
-oneShot :: Hint a => Title -> Body -> Icon -> [a] -> IO ()
-oneShot t b i hs = withNotifications Nothing . new t b i $ mapM_ addHint hs >> render
+oneShot :: Title -> Body -> Icon -> Maybe [Hint] -> IO ()
+oneShot t b i hs = withNotifications Nothing . new t b i $ mapM_ addHint (fromMaybe [] hs) >> render
 
 -- | Creates new notification session. Inside 'new' call one can manage current notification via 'update' or 'render' calls.
 -- Returns notification pointer. This could be useful if one wants to 'update' or 'close' the same notification after some time (see 'continue').
@@ -104,43 +102,13 @@ setIconFromPixbuf p = Notify $ ask >>= liftIO . N.setIconFromPixbuf p
 setImageFromPixbuf :: Pixbuf -> Notify ()
 setImageFromPixbuf p = Notify $ ask >>= liftIO . N.setImageFromPixbuf p
 
--- | Instance of 'Hint' class. Useful for 'oneShot' calls with empty hint list.
-data GeneralHint = HintInt String Int32 | HintDouble String Double | HintString String String | HintByte String Word8 | HintArray String BS.ByteString
-
--- | Hint is some setting (server-dependent) which comes with notification.
-class Hint a where
-  -- | Adds 'Hint' to notification.
-  addHint :: a -> Notify ()
-  -- | Generalizes 'Hint' to some type. Could be useful if one wants to pass list of distinct hints types.
-  generalize :: a -> GeneralHint
-
-instance Hint GeneralHint where
-  addHint (HintInt k v) = addHint (k,v)
-  addHint (HintDouble k v) = addHint (k,v)
-  addHint (HintString k v) = addHint (k,v)
-  addHint (HintByte k v) = addHint (k,v)
-  addHint (HintArray k v) = addHint (k,v)
-  generalize = id
-
-instance Hint (Key,Int32) where
-  addHint (k,v) = Notify $ ask >>= \s -> liftIO $ N.setHintInt32 s k v
-  generalize (k,v) = HintInt k v
-
-instance Hint (Key,Double) where
-  addHint (k,v) = Notify $ ask >>= \s -> liftIO $ N.setHintDouble s k v
-  generalize (k,v) = HintDouble k v
-
-instance Hint (Key,String) where
-  addHint (k,v) = Notify $ ask >>= \s -> liftIO $ N.setHintString s k v
-  generalize (k,v) = HintString k v
-
-instance Hint (Key,Word8) where
-  addHint (k,v) = Notify $ ask >>= \s -> liftIO $ N.setHintByte s k v
-  generalize (k,v) = HintByte k v
-
-instance Hint (Key,BS.ByteString) where
-  addHint (k,v) = Notify $ ask >>= \s -> liftIO $ N.setHintByteArray s k v
-  generalize (k,v) = HintArray k v
+-- | Adds 'Hint' to notification.
+addHint :: Hint -> Notify ()
+addHint (HintInt k v) =  Notify $ ask >>= \s -> liftIO $ N.setHintInt32 s k v
+addHint (HintDouble k v) = Notify $ ask >>= \s -> liftIO $ N.setHintDouble s k v
+addHint (HintString k v) = Notify $ ask >>= \s -> liftIO $ N.setHintString s k v
+addHint (HintByte k v) = Notify $ ask >>= \s -> liftIO $ N.setHintByte s k v
+addHint (HintArray k v) = Notify $ ask >>= \s -> liftIO $ N.setHintByteArray s k v
 
 -- | Removes hints from notification.
 removeHints :: Notify ()

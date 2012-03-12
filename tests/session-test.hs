@@ -1,7 +1,6 @@
 #!/usr/bin/env runhaskell
 
 import System.Libnotify
-import System.Libnotify.Types
 import Control.Concurrent (threadDelay)
 
 main :: IO ()

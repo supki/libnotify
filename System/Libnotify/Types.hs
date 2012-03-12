@@ -8,11 +8,15 @@ module System.Libnotify.Types
   , Title, Body, Icon
   , Key
   , ServerInfo(..)
+  , Hint(..)
   , NotifyError(..)
   ) where
 
 import Control.Exception (Exception)
+import qualified Data.ByteString as BS
+import Data.Int (Int32)
 import Data.Typeable (Typeable)
+import Data.Word (Word8)
 
 -- | Urgency can be used by the notification server to prioritize notifications.
 -- Although urgency does not work with notify-osd.
@@ -38,9 +42,6 @@ type Body = String
 -- | Type synonim for notification icon.
 type Icon = String
 
--- | Type synonym for 'Hint' key type.
-type Key = String
-
 -- | Server information.
 data ServerInfo = ServerInfo
   { serverName  :: String
@@ -48,6 +49,14 @@ data ServerInfo = ServerInfo
   , serverVersion :: String
   , serverSpecVersion :: String
   } deriving Show
+
+-- | Hint is some setting (server-dependent) which comes with notification.
+data Hint = HintInt String Int32
+          | HintDouble String Double
+          | HintString String String
+          | HintByte String Word8
+          | HintArray String BS.ByteString
+
 
 -- | Libnotify errors.
 data NotifyError
