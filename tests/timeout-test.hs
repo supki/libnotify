@@ -1,16 +1,16 @@
 #!/usr/bin/env runhaskell
 
-import System.Libnotify
-import System.Libnotify.Types
 import Control.Concurrent (threadDelay)
+import Control.Monad (void)
+import System.Libnotify
 
 main :: IO ()
-main = withNotifications Nothing $
-         do _ <- new "Default" "some text" "dialog-information" $
+main = void $ withNotifications Nothing $
+         do new "Default" "some text" "dialog-information" $
               do setTimeout Default
                  render
             threadDelay 2000000
-            _ <- new "Infinite" "some text" "dialog-question" $
+            new "Infinite" "some text" "dialog-question" $
               do setTimeout Infinite
                  render
             threadDelay 2000000

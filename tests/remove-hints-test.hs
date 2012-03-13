@@ -1,9 +1,10 @@
 #!/usr/bin/env runhaskell
 
+import Control.Monad (void)
 import System.Libnotify
 
 main :: IO ()
-main = withNotifications Nothing $
+main = void $ withNotifications Nothing $
          do new "Same title" "line 1" "" $
               do addHint (HintString "append" "allowed")
                  removeHints

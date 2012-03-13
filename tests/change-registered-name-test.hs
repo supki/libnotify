@@ -1,10 +1,11 @@
 #!/usr/bin/env runhaskell
 
+import Control.Monad (void)
 import System.Libnotify
 import System.Libnotify.Server
 
 main :: IO ()
-main = withNotifications (Just "first-name") $
+main = void $ withNotifications (Just "first-name") $
          do before <- getAppName
             putStrLn $ "Before: " ++ before
             setAppName "second-name"

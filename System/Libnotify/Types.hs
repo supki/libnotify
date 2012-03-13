@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 -- | System.Libnotify.Types module is a collection of types is used in other modules.
 -- This is reexported with System.Libnotify module. Perhaps it'll never be needed to import explicitly.
 {-# OPTIONS_HADDOCK prune #-}
@@ -8,13 +7,10 @@ module System.Libnotify.Types
   , Title, Body, Icon
   , ServerInfo(..)
   , Hint(..)
-  , NotifyError(..)
   ) where
 
-import Control.Exception (Exception)
 import qualified Data.ByteString as BS
 import Data.Int (Int32)
-import Data.Typeable (Typeable)
 import Data.Word (Word8)
 
 -- | Urgency can be used by the notification server to prioritize notifications.
@@ -55,12 +51,3 @@ data Hint = HintInt String Int32
           | HintString String String
           | HintByte String Word8
           | HintArray String BS.ByteString
-
-
--- | Libnotify errors.
-data NotifyError
-  = NotifyInitHasFailed  -- ^ notify_init() has failed.
-  | NewCalledBeforeInit  -- ^ 'new' has called before notify_init().
-  deriving (Show, Typeable)
-
-instance Exception NotifyError

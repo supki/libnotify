@@ -2,24 +2,22 @@
 -- | System.Libnotify module deals with notification session processing.
 {-# OPTIONS_HADDOCK prune #-}
 module System.Libnotify
-  ( Notify, NotifyState
+  ( Notify, NotifyState, NotifyError (..)
   , oneShot, withNotifications
   , new, continue, update, render, close
   , setTimeout, setCategory, setUrgency
   , addHint, removeHints
   , addAction, removeActions
-  , notifyErrorHandler
   , setIconFromPixbuf, setImageFromPixbuf
   , module System.Libnotify.Types
   ) where
 
-import Control.Exception (throw)
+import Control.Applicative ((<$>))
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.State (StateT, execStateT, get, put)
 import Control.Monad.Trans (MonadIO, liftIO)
 import Data.Maybe (fromMaybe)
 import Graphics.UI.Gtk.Gdk.Pixbuf (Pixbuf)
-import System.IO (stderr, hPutStrLn)
 
 import System.Libnotify.Internal (Notification)
 import qualified System.Libnotify.Internal as N
@@ -27,6 +25,12 @@ import System.Libnotify.Types
 
 -- | Notification state. Contains next rendered notification data.
 data NotifyState = NotifyState Title Body Icon
+
+-- | Libnotify errors.
+data NotifyError
+  = NotifyInitHasFailed  -- ^ notify_init() has failed.
+  | NewCalledBeforeInit  -- ^ 'new' has called before notify_init().
+  deriving Show
 
 -- | Notification monad. Saves notification context.
 newtype Notify a = Notify { runNotify :: StateT NotifyState (ReaderT Notification IO) a } deriving (Functor, Monad, MonadIO)
@@ -37,25 +41,25 @@ newtype Notify a = Notify { runNotify :: StateT NotifyState (ReaderT Notificatio
 
   > main = withNotifications (Just "api-name") $ do { ... here are notification API calls ... }
 -}
-withNotifications :: Maybe String -> IO a -> IO ()
+withNotifications :: Maybe String -> IO a -> IO (Either NotifyError ())
 withNotifications a x = (N.initNotify . fromMaybe " ") a >>= \initted ->
                         if initted
-                          then x >> N.uninitNotify
-                          else throw NotifyInitHasFailed
+                          then Right <$> (x >> N.uninitNotify)
+                          else return $ Left NotifyInitHasFailed
 
 -- | Function for one-time notification with hints perhaps. Should be enough for a vast majority of applications.
-oneShot :: Title -> Body -> Icon -> Maybe [Hint] -> IO ()
+oneShot :: Title -> Body -> Icon -> Maybe [Hint] -> IO (Either NotifyError ())
 oneShot t b i hs = withNotifications Nothing . new t b i $ mapM_ addHint (fromMaybe [] hs) >> render
 
 -- | Creates new notification session. Inside 'new' call one can manage current notification via 'update' or 'render' calls.
 -- Returns notification pointer. This could be useful if one wants to 'update' or 'close' the same notification after some time (see 'continue').
-new :: Title -> Body -> Icon -> Notify t -> IO (Notification, NotifyState)
+new :: Title -> Body -> Icon -> Notify t -> IO (Either NotifyError (Notification, NotifyState))
 new t b i f = N.isInitted >>= \initted ->
               if initted
                 then do n <- N.newNotify t (listToMaybe b) (listToMaybe i)
                         s <- continue (n, NotifyState t b i) f
-                        return (n, s)
-                else throw NewCalledBeforeInit
+                        return $ Right (n, s)
+                else return $ Left NewCalledBeforeInit
 
 -- | Continues old notification session.
 continue :: (Notification, NotifyState) -> Notify a -> IO NotifyState
@@ -70,9 +74,8 @@ update mt mb mi = Notify $
      let nt = fromMaybe t mt
          nb = fromMaybe b mb
          ni = fromMaybe i mi
-     r <- liftIO $ N.updateNotify n nt (listToMaybe nb) (listToMaybe ni)
      put (NotifyState nt nb ni)
-     return r
+     liftIO $ N.updateNotify n nt (listToMaybe nb) (listToMaybe ni)
 
 -- | Shows notification to user.
 render :: Notify Bool
@@ -121,11 +124,6 @@ addAction a l c = Notify $ ask >>= liftIO . N.addAction a l c
 -- | Removes actions from notification.
 removeActions :: Notify ()
 removeActions = Notify $ ask >>= liftIO . N.clearActions
-
--- | Libnotify error handler
-notifyErrorHandler :: NotifyError -> IO ()
-notifyErrorHandler NotifyInitHasFailed = hPutStrLn stderr "withNotifications: init has failed."
-notifyErrorHandler NewCalledBeforeInit = hPutStrLn stderr "new: Libnotify is not initialized properly."
 
 listToMaybe :: [a] -> Maybe [a]
 listToMaybe [] = Nothing

@@ -1,11 +1,12 @@
 #!/usr/bin/env runhaskell
 
 import Control.Concurrent (threadDelay)
+import Control.Monad (void)
 import Data.Int (Int32)
 import System.Libnotify
 
 main :: IO ()
-main = withNotifications Nothing $ (homogeneous >> geterogeneous)
+main = void $ withNotifications Nothing $ (homogeneous >> geterogeneous)
 
 homogeneous = do new "Same title" "line 1" "" $ do addHint (HintString "append" "allowed")
                                                    render

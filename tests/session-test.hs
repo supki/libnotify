@@ -1,14 +1,15 @@
 #!/usr/bin/env runhaskell
 
-import System.Libnotify
 import Control.Concurrent (threadDelay)
+import Control.Monad (void)
+import System.Libnotify
 
 main :: IO ()
-main = withNotifications Nothing $
+main = void $ withNotifications Nothing $
          do let title = "Some title"
                 body = "some text"
                 icon = "dialog-information"
-            s <- new title body icon render
+            Right s <- new title body icon render
             threadDelay 1000000
             continue s $
               do update Nothing (Just "another text") (Just "dialog-question")

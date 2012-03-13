@@ -14,10 +14,11 @@ You would prefer simple way if all you want is one notification as a result of s
 
 ```haskell
 -- displays notification with title "Hello world!", body "Want some notifications?", question icon and then exits.
+import Control.Monad (void)
 import System.Libnotify
 
 main :: IO ()
-main = oneShot "Hello world!" "Want some notifications?" "dialog-question" Nothing
+main = void $ oneShot "Hello world!" "Want some notifications?" "dialog-question" Nothing
 ```
 
 However, if you want some nontrivial behaviour, such as updating already displayed notification or closing it, you would use:
@@ -26,12 +27,13 @@ However, if you want some nontrivial behaviour, such as updating already display
 -- displays notification with title "Hello world!", body "Want some notifications?", question icon for one second
 -- then displays notification with title "Hello world!", body "Here it is!", information icon for one second and exits
 
-import System.Libnotify
 import Control.Concurrent (threadDelay)
+import Control.Monad (void)
 import Control.Monad.Trans (liftIO)
+import System.Libnotify
 
 main :: IO ()
-main = withNotifications Nothing $
+main = void $ withNotifications Nothing $
          do let title = "Hello world!"
                 body = "Want some notifications?"
                 icon = "dialog-question"
@@ -48,15 +50,16 @@ You can even use one notification in different program places:
 
 ```haskell
 -- same example with session continued
-import System.Libnotify
 import Control.Concurrent (threadDelay)
+import Control.Monad (void)
+import System.Libnotify
 
 main :: IO ()
-main = withNotifications Nothing $
+main = void $ withNotifications Nothing $
          do let title = "Hello world!"
                 body = "Want some notifications?"
                 icon = "dialog-question"
-            n <- new title body icon render
+            Right n <- new title body icon render
             threadDelay 1000000
             continue n $ update Nothing (Just "Here it is!") (Just "dialog-information") >> render
             threadDelay 1000000
