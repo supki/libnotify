@@ -6,7 +6,6 @@
 module System.Libnotify.Types
   ( Timeout(..), Urgency(..), Category
   , Title, Body, Icon
-  , Key
   , ServerInfo(..)
   , Hint(..)
   , NotifyError(..)

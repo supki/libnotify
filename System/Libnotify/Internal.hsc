@@ -145,8 +145,8 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_image_fr
                                             -> Ptr Pixbuf
                                             -> IO ()
 
-setHintInt32 :: Notification -> String -> Int32 -> IO ()
-setHintInt32 notify key value =
+setHintInt32 :: String -> Int32 -> Notification -> IO ()
+setHintInt32 key value notify =
   withCString key $ \p_key ->
   notify_notification_set_hint_int32 notify p_key (fromIntegral value)
 
@@ -156,8 +156,8 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_int
                                      -> CInt
                                      -> IO ()
 
-setHintDouble :: Notification -> String -> Double -> IO ()
-setHintDouble notify key value =
+setHintDouble :: String -> Double -> Notification -> IO ()
+setHintDouble key value notify =
   withCString key $ \p_key ->
   notify_notification_set_hint_double notify p_key (realToFrac value)
 
@@ -167,8 +167,8 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_dou
                                       -> CDouble
                                       -> IO ()
 
-setHintString :: Notification -> String -> String -> IO ()
-setHintString notify key value =
+setHintString :: String -> String -> Notification -> IO ()
+setHintString key value notify =
   withCString key   $ \p_key ->
   withCString value $ \p_value ->
   notify_notification_set_hint_string notify p_key p_value
@@ -179,8 +179,8 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_str
                                       -> CString
                                       -> IO ()
 
-setHintByte :: Notification -> String -> Word8 -> IO ()
-setHintByte notify key value =
+setHintByte :: String -> Word8 -> Notification -> IO ()
+setHintByte key value notify =
   withCString key $ \p_key ->
   notify_notification_set_hint_byte notify p_key (fromIntegral value)
 
@@ -190,8 +190,8 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_set_hint_byt
                                     -> CUChar
                                     -> IO ()
 
-setHintByteArray :: Notification -> String -> BS.ByteString -> IO ()
-setHintByteArray notify key value =
+setHintByteArray :: String -> BS.ByteString -> Notification -> IO ()
+setHintByteArray key value notify =
   withCString key $ \p_key ->
   withArrayLen (BS.foldr' step [] value) $ \len p_bs ->
   notify_notification_set_hint_byte_array notify p_key p_bs (fromIntegral len)
@@ -212,12 +212,12 @@ foreign import ccall unsafe "libnotify/notify.h notify_notification_clear_hints"
   notify_notification_clear_hints :: Notification -> IO ()
 
 addAction
-  :: Notification
-  -> String
+  :: String
   -> String
   -> (Notification -> String -> IO ())
+  -> Notification
   -> IO ()
-addAction notify action label callback =
+addAction action label callback notify =
   withCString action $ \p_action ->
   withCString label  $ \p_label -> do
     p_callback <- wrapActionCallback $ makeCallback callback

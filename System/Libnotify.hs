@@ -104,11 +104,11 @@ setImageFromPixbuf p = Notify $ ask >>= liftIO . N.setImageFromPixbuf p
 
 -- | Adds 'Hint' to notification.
 addHint :: Hint -> Notify ()
-addHint (HintInt k v) =  Notify $ ask >>= \s -> liftIO $ N.setHintInt32 s k v
-addHint (HintDouble k v) = Notify $ ask >>= \s -> liftIO $ N.setHintDouble s k v
-addHint (HintString k v) = Notify $ ask >>= \s -> liftIO $ N.setHintString s k v
-addHint (HintByte k v) = Notify $ ask >>= \s -> liftIO $ N.setHintByte s k v
-addHint (HintArray k v) = Notify $ ask >>= \s -> liftIO $ N.setHintByteArray s k v
+addHint (HintInt k v) =  Notify $ ask >>= liftIO . N.setHintInt32 k v
+addHint (HintDouble k v) = Notify $ ask >>= liftIO . N.setHintDouble k v
+addHint (HintString k v) = Notify $ ask >>= liftIO . N.setHintString k v
+addHint (HintByte k v) = Notify $ ask >>= liftIO . N.setHintByte k v
+addHint (HintArray k v) = Notify $ ask >>= liftIO . N.setHintByteArray k v
 
 -- | Removes hints from notification.
 removeHints :: Notify ()
@@ -116,7 +116,7 @@ removeHints = Notify $ ask >>= liftIO . N.clearHints
 
 -- | Adds action to notification.
 addAction :: String -> String -> (Notification -> String -> IO ()) -> Notify ()
-addAction a l c = Notify $ ask >>= \s -> liftIO $ N.addAction s a l c
+addAction a l c = Notify $ ask >>= liftIO . N.addAction a l c
 
 -- | Removes actions from notification.
 removeActions :: Notify ()
