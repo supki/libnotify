@@ -44,7 +44,7 @@ main = withNotifications Nothing $
               close
 ```
 
-You can use one notification in different program places, but API isn't stable in this part yet.
+You can even use one notification in different program places:
 
 ```haskell
 -- same example with session continued
@@ -58,9 +58,9 @@ main = withNotifications Nothing $
                 icon = "dialog-question"
             n <- new title body icon render
             threadDelay 1000000
-            continue title body icon n $ update Nothing (Just "Here it is!") (Just "dialog-information") >> render
+            continue n $ update Nothing (Just "Here it is!") (Just "dialog-information") >> render
             threadDelay 1000000
-            continue title body icon n close
+            continue n close
 ```
 
 ![That's all folks!](http://vsegda.budueba.com/img/b5646a36b80cedc99a2c5fee762d4347.jpg)

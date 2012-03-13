@@ -10,6 +10,6 @@ main = withNotifications Nothing $
                 icon = "dialog-information"
             s <- new title body icon render
             threadDelay 1000000
-            continue title body icon s $
+            continue s $
               do update Nothing (Just "another text") (Just "dialog-question")
                  render

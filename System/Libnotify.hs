@@ -2,7 +2,8 @@
 -- | System.Libnotify module deals with notification session processing.
 {-# OPTIONS_HADDOCK prune #-}
 module System.Libnotify
-  ( oneShot, withNotifications
+  ( Notify, NotifyState
+  , oneShot, withNotifications
   , new, continue, update, render, close
   , setTimeout, setCategory, setUrgency
   , addHint, removeHints
@@ -13,9 +14,8 @@ module System.Libnotify
   ) where
 
 import Control.Exception (throw)
-import Control.Monad (void)
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
-import Control.Monad.State (StateT, get, put, runStateT)
+import Control.Monad.State (StateT, execStateT, get, put)
 import Control.Monad.Trans (MonadIO, liftIO)
 import Data.Maybe (fromMaybe)
 import Graphics.UI.Gtk.Gdk.Pixbuf (Pixbuf)
@@ -49,17 +49,17 @@ oneShot t b i hs = withNotifications Nothing . new t b i $ mapM_ addHint (fromMa
 
 -- | Creates new notification session. Inside 'new' call one can manage current notification via 'update' or 'render' calls.
 -- Returns notification pointer. This could be useful if one wants to 'update' or 'close' the same notification after some time (see 'continue').
-new :: Title -> Body -> Icon -> Notify t -> IO Notification
+new :: Title -> Body -> Icon -> Notify t -> IO (Notification, NotifyState)
 new t b i f = N.isInitted >>= \initted ->
               if initted
                 then do n <- N.newNotify t (listToMaybe b) (listToMaybe i)
-                        continue t b i n f
-                        return n
+                        s <- continue (n, NotifyState t b i) f
+                        return (n, s)
                 else throw NewCalledBeforeInit
 
 -- | Continues old notification session.
-continue :: Title -> Body -> Icon -> Notification -> Notify a -> IO ()
-continue t b i s f = void $ (runReaderT (runStateT (runNotify f) (NotifyState t b i)) s)
+continue :: (Notification, NotifyState) -> Notify a -> IO NotifyState
+continue (n, s) f = runReaderT (execStateT (runNotify f) s) n
 
 -- | Updates notification 'Title', 'Body' and 'Icon'.
 -- User can update notification partially, passing Nothing to arguments that should not changed.
