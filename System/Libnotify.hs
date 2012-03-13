@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, FlexibleContexts, GeneralizedNewtypeDeriving  #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving  #-}
 -- | System.Libnotify module deals with notification session processing.
 {-# OPTIONS_HADDOCK prune #-}
 module System.Libnotify
