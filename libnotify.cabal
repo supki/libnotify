@@ -13,9 +13,9 @@ Build-Type: Simple
 Library
   Build-Depends: base >= 3 && < 5, bytestring, glib, gtk, mtl
   Exposed-Modules: System.Libnotify
-                   System.Libnotify.Internal
                    System.Libnotify.Server
                    System.Libnotify.Types
+  Other-Modules: System.Libnotify.Internal
   GHC-Options: -Wall
   Extra-Libraries: notify
 
