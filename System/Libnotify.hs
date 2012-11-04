@@ -33,7 +33,10 @@ data NotifyError
   deriving Show
 
 -- | Notification monad. Saves notification context.
-newtype Notify a = Notify { runNotify :: StateT NotifyState (ReaderT Notification IO) a } deriving (Functor, Monad, MonadIO)
+newtype Notify a = Notify
+  { runNotify :: StateT NotifyState
+                (ReaderT Notification IO) a }
+    deriving (Functor, Monad, MonadIO)
 
 {-|
   Initializes and uninitializes libnotify API.
@@ -42,10 +45,11 @@ newtype Notify a = Notify { runNotify :: StateT NotifyState (ReaderT Notificatio
   > main = withNotifications (Just "api-name") $ do { ... here are notification API calls ... }
 -}
 withNotifications :: Maybe String -> IO a -> IO (Either NotifyError ())
-withNotifications a x = (N.initNotify . fromMaybe " ") a >>= \initted ->
-                        if initted
-                          then Right <$> (x >> N.uninitNotify)
-                          else return $ Left NotifyInitHasFailed
+withNotifications a x =
+  N.initNotify (fromMaybe " " a) >>= \initted ->
+    if initted
+    then Right <$> (x >> N.uninitNotify)
+    else return $ Left NotifyInitHasFailed
 
 -- | Function for one-time notification with hints perhaps. Should be enough for a vast majority of applications.
 oneShot :: Title -> Body -> Icon -> Maybe [Hint] -> IO (Either NotifyError ())
@@ -79,51 +83,56 @@ update mt mb mi = Notify $
 
 -- | Shows notification to user.
 render :: Notify Bool
-render = Notify $ ask >>= liftIO . N.showNotify
+render = withNotification $ N.showNotify
 
 -- | Closes notification.
 close :: Notify Bool
-close = Notify $ ask >>= liftIO . N.closeNotify
+close = withNotification $ N.closeNotify
 
 -- | Sets notification 'Timeout'.
 setTimeout :: Timeout -> Notify ()
-setTimeout t = Notify $ ask >>= liftIO . N.setTimeout t
+setTimeout = withNotification . N.setTimeout
 
 -- | Sets notification 'Category'.
 setCategory :: Category -> Notify ()
-setCategory c = Notify $ ask >>= liftIO . N.setCategory c
+setCategory = withNotification . N.setCategory
 
 -- | Sets notification 'Urgency'.
 setUrgency :: Urgency -> Notify ()
-setUrgency u = Notify $ ask >>= liftIO . N.setUrgency u
+setUrgency = withNotification . N.setUrgency
 
 -- | Sets notification icon from pixbuf
 setIconFromPixbuf :: Pixbuf -> Notify ()
-setIconFromPixbuf p = Notify $ ask >>= liftIO . N.setIconFromPixbuf p
+setIconFromPixbuf = withNotification . N.setIconFromPixbuf
 
 -- | Sets notification image from pixbuf
 setImageFromPixbuf :: Pixbuf -> Notify ()
-setImageFromPixbuf p = Notify $ ask >>= liftIO . N.setImageFromPixbuf p
+setImageFromPixbuf = withNotification . N.setImageFromPixbuf
 
 -- | Adds 'Hint' to notification.
 addHint :: Hint -> Notify ()
-addHint (HintInt k v) =  Notify $ ask >>= liftIO . N.setHintInt32 k v
-addHint (HintDouble k v) = Notify $ ask >>= liftIO . N.setHintDouble k v
-addHint (HintString k v) = Notify $ ask >>= liftIO . N.setHintString k v
-addHint (HintByte k v) = Notify $ ask >>= liftIO . N.setHintByte k v
-addHint (HintArray k v) = Notify $ ask >>= liftIO . N.setHintByteArray k v
+addHint (HintInt k v) = withNotification $ N.setHintInt32 k v
+addHint (HintDouble k v) = withNotification $ N.setHintDouble k v
+addHint (HintString k v) = withNotification $ N.setHintString k v
+addHint (HintByte k v) = withNotification $ N.setHintByte k v
+addHint (HintArray k v) = withNotification $ N.setHintByteArray k v
 
 -- | Removes hints from notification.
 removeHints :: Notify ()
-removeHints = Notify $ ask >>= liftIO . N.clearHints
+removeHints = withNotification N.clearHints
 
 -- | Adds action to notification.
 addAction :: String -> String -> (Notification -> String -> IO ()) -> Notify ()
-addAction a l c = Notify $ ask >>= liftIO . N.addAction a l c
+addAction a l c = withNotification $ N.addAction a l c
 
 -- | Removes actions from notification.
 removeActions :: Notify ()
-removeActions = Notify $ ask >>= liftIO . N.clearActions
+removeActions = withNotification N.clearActions
+
+
+withNotification :: (Notification -> IO a) -> Notify a
+withNotification f = Notify $ ask >>= liftIO . f
+
 
 listToMaybe :: [a] -> Maybe [a]
 listToMaybe [] = Nothing
