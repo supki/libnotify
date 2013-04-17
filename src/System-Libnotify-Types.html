@@ -8,13 +8,13 @@
 </head>
 <body>
 <pre><a name="line-1"></a><span class='hs-comment'>-- | Types used in other modules</span>
-<a name="line-2"></a><span class='hs-comment'>{-# OPTIONS_HADDOCK prune #-}</span>
-<a name="line-3"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>System</span><span class='hs-varop'>.</span><span class='hs-conid'>Libnotify</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
-<a name="line-4"></a>  <span class='hs-layout'>(</span> <span class='hs-conid'>Timeout</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-conid'>Urgency</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-conid'>Category</span>
-<a name="line-5"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>ServerInfo</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
-<a name="line-6"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-7"></a>
-<a name="line-8"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Array</span> <span class='hs-layout'>(</span><span class='hs-conid'>Ix</span><span class='hs-layout'>)</span>
+<a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>System</span><span class='hs-varop'>.</span><span class='hs-conid'>Libnotify</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
+<a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-conid'>Timeout</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-conid'>Urgency</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-conid'>Category</span>
+<a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>ServerInfo</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
+<a name="line-5"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-6"></a>
+<a name="line-7"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Array</span> <span class='hs-layout'>(</span><span class='hs-conid'>Ix</span><span class='hs-layout'>)</span>
+<a name="line-8"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Default</span> <span class='hs-layout'>(</span><span class='hs-conid'>Default</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 <a name="line-9"></a>
 <a name="line-10"></a><a name="Urgency"></a><span class='hs-comment'>-- | Urgency can be used by the notification server to prioritize notifications.</span>
 <a name="line-11"></a><a name="Urgency"></a><span class='hs-comment'>-- Although urgency does not work with notify-osd.</span>
@@ -24,23 +24,29 @@
 <a name="line-15"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>Critical</span> <span class='hs-comment'>-- ^ Critical notification that requires immediate attention.</span>
 <a name="line-16"></a>    <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>,</span> <span class='hs-conid'>Read</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ord</span><span class='hs-layout'>,</span> <span class='hs-conid'>Enum</span><span class='hs-layout'>,</span> <span class='hs-conid'>Bounded</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ix</span><span class='hs-layout'>)</span>
 <a name="line-17"></a>
-<a name="line-18"></a><a name="Timeout"></a><span class='hs-comment'>-- | Timeout in seconds after which notification is closed.</span>
-<a name="line-19"></a><a name="Timeout"></a><span class='hs-comment'>-- Although timeout does not work with notify-osd.</span>
-<a name="line-20"></a><a name="Timeout"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Timeout</span>
-<a name="line-21"></a>  <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Default</span>    <span class='hs-comment'>-- ^ Default server timeout.</span>
-<a name="line-22"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>Custom</span> <span class='hs-conid'>Int</span> <span class='hs-comment'>-- ^ User defined timeout (in milliseconds).</span>
-<a name="line-23"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>Infinite</span>   <span class='hs-comment'>-- ^ Notification will not expire until user pays attention to it.</span>
-<a name="line-24"></a>    <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>,</span> <span class='hs-conid'>Read</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ord</span><span class='hs-layout'>)</span>
-<a name="line-25"></a>
-<a name="line-26"></a><a name="Category"></a><span class='hs-comment'>-- | Category can be used by the notification server to filter or display the data in a certain way.</span>
-<a name="line-27"></a><a name="Category"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Category</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>String</span>
+<a name="line-18"></a><a name="instance%20Default%20Urgency"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Default</span> <span class='hs-conid'>Urgency</span> <span class='hs-keyword'>where</span>
+<a name="line-19"></a>  <span class='hs-varid'>def</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Normal</span>
+<a name="line-20"></a>
+<a name="line-21"></a><a name="Timeout"></a><span class='hs-comment'>-- | Timeout in seconds after which notification is closed.</span>
+<a name="line-22"></a><a name="Timeout"></a><span class='hs-comment'>-- Although timeout does not work with notify-osd.</span>
+<a name="line-23"></a><a name="Timeout"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Timeout</span>
+<a name="line-24"></a>  <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Default</span>    <span class='hs-comment'>-- ^ Default server timeout.</span>
+<a name="line-25"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>Custom</span> <span class='hs-conid'>Int</span> <span class='hs-comment'>-- ^ User defined timeout (in milliseconds).</span>
+<a name="line-26"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>Infinite</span>   <span class='hs-comment'>-- ^ Notification will not expire until user pays attention to it.</span>
+<a name="line-27"></a>    <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>,</span> <span class='hs-conid'>Read</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ord</span><span class='hs-layout'>)</span>
 <a name="line-28"></a>
-<a name="line-29"></a><a name="ServerInfo"></a><span class='hs-comment'>-- | Server information.</span>
-<a name="line-30"></a><a name="ServerInfo"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>ServerInfo</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ServerInfo</span>
-<a name="line-31"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>name</span>    <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span>
-<a name="line-32"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>vendor</span>  <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span>
-<a name="line-33"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>version</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span>
-<a name="line-34"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>spec</span>    <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span>
-<a name="line-35"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>,</span> <span class='hs-conid'>Read</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ord</span><span class='hs-layout'>)</span>
+<a name="line-29"></a><a name="instance%20Default%20Timeout"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Default</span> <span class='hs-conid'>Timeout</span> <span class='hs-keyword'>where</span>
+<a name="line-30"></a>  <span class='hs-varid'>def</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Default</span>
+<a name="line-31"></a>
+<a name="line-32"></a><a name="Category"></a><span class='hs-comment'>-- | Category can be used by the notification server to filter or display the data in a certain way.</span>
+<a name="line-33"></a><a name="Category"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Category</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>String</span>
+<a name="line-34"></a>
+<a name="line-35"></a><a name="ServerInfo"></a><span class='hs-comment'>-- | Server information.</span>
+<a name="line-36"></a><a name="ServerInfo"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>ServerInfo</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ServerInfo</span>
+<a name="line-37"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>name</span>    <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span>
+<a name="line-38"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>vendor</span>  <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span>
+<a name="line-39"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>version</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span>
+<a name="line-40"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>spec</span>    <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span>
+<a name="line-41"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>,</span> <span class='hs-conid'>Read</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ord</span><span class='hs-layout'>)</span>
 </pre></body>
 </html>
