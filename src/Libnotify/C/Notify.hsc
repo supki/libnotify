@@ -6,7 +6,7 @@
 --
 -- See also <https://developer.gnome.org/libnotify/0.7/libnotify-notify.html>. Haddocks here
 -- are mostly excerpts from there
-module System.Libnotify.C.Notify
+module Libnotify.C.Notify
   ( notify_init
   , notify_uninit
   , notify_is_initted

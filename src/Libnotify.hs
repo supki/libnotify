@@ -1,7 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving  #-}
 -- | System.Libnotify module deals with notification session processing.
 {-# OPTIONS_HADDOCK prune #-}
-module System.Libnotify
+module Libnotify
   ( Notify, NotifyState, NotifyError (..)
   , oneShot, withNotifications
   , new, continue, update, render, close
@@ -21,8 +21,8 @@ import Data.Word (Word8)
 import Data.Maybe (fromMaybe)
 import Graphics.UI.Gtk.Gdk.Pixbuf (Pixbuf)
 
-import System.Libnotify.C.Notify
-import System.Libnotify.C.NotifyNotification
+import Libnotify.C.Notify
+import Libnotify.C.NotifyNotification
 
 
 -- | Type synonim for notification title.

@@ -5,7 +5,7 @@
 --
 -- See also <https://developer.gnome.org/libnotify/0.7/NotifyNotification.html>. Haddocks here
 -- are mostly excerpts from there
-module System.Libnotify.C.NotifyNotification
+module Libnotify.C.NotifyNotification
   ( NotifyNotification
   , notify_notification_new
   , notify_notification_update

@@ -20,9 +20,9 @@ library
     , gtk
     , mtl
   exposed-modules:
-    System.Libnotify
-    System.Libnotify.C.Notify
-    System.Libnotify.C.NotifyNotification
+    Libnotify
+    Libnotify.C.Notify
+    Libnotify.C.NotifyNotification
   ghc-options:
     -Wall
     -fno-warn-unused-do-bind
