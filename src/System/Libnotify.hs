@@ -9,21 +9,35 @@ module System.Libnotify
   , addHint, removeHints
   , addAction, removeActions
   , setIconFromPixbuf, setImageFromPixbuf
-  , module System.Libnotify.Types
   ) where
 
 import Control.Applicative ((<$>))
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.State (StateT, execStateT, get, put)
 import Control.Monad.Trans (MonadIO, liftIO)
+import Data.ByteString (ByteString)
+import Data.Int (Int32)
+import Data.Word (Word8)
 import Data.Maybe (fromMaybe)
 import Graphics.UI.Gtk.Gdk.Pixbuf (Pixbuf)
 
-import System.Libnotify.Internal (Notification)
-import qualified System.Libnotify.Internal as N
-import qualified System.Libnotify.C.Notify as N
-import System.Libnotify.Types
+import System.Libnotify.C.Notify
+import System.Libnotify.C.NotifyNotification
 
+
+-- | Type synonim for notification title.
+type Title = String
+-- | Type synonim for notification body.
+type Body = String
+-- | Type synonim for notification icon.
+type Icon = String
+
+-- | Hint is some setting (server-dependent) which comes with notification.
+data Hint = HintInt String Int32
+          | HintDouble String Double
+          | HintString String String
+          | HintByte String Word8
+          | HintArray String ByteString
 -- | Notification state. Contains next rendered notification data.
 data NotifyState = NotifyState Title Body Icon
 
@@ -36,7 +50,7 @@ data NotifyError
 -- | Notification monad. Saves notification context.
 newtype Notify a = Notify
   { runNotify :: StateT NotifyState
-                (ReaderT Notification IO) a }
+                (ReaderT NotifyNotification IO) a }
     deriving (Functor, Monad, MonadIO)
 
 {-|
@@ -47,9 +61,9 @@ newtype Notify a = Notify
 -}
 withNotifications :: Maybe String -> IO a -> IO (Either NotifyError ())
 withNotifications a x =
-  N.notify_init (fromMaybe " " a) >>= \initted ->
+  notify_init (fromMaybe " " a) >>= \initted ->
     if initted
-    then Right <$> (x >> N.notify_uninit)
+    then Right <$> (x >> notify_uninit)
     else return $ Left NotifyInitHasFailed
 
 -- | Function for one-time notification with hints perhaps. Should be enough for a vast majority of applications.
@@ -58,16 +72,16 @@ oneShot t b i hs = withNotifications Nothing . new t b i $ mapM_ addHint (fromMa
 
 -- | Creates new notification session. Inside 'new' call one can manage current notification via 'update' or 'render' calls.
 -- Returns notification pointer. This could be useful if one wants to 'update' or 'close' the same notification after some time (see 'continue').
-new :: Title -> Body -> Icon -> Notify t -> IO (Either NotifyError (Notification, NotifyState))
-new t b i f = N.notify_is_initted >>= \initted ->
+new :: Title -> Body -> Icon -> Notify t -> IO (Either NotifyError (NotifyNotification, NotifyState))
+new t b i f = notify_is_initted >>= \initted ->
               if initted
-                then do n <- N.newNotify t (listToMaybe b) (listToMaybe i)
+                then do n <- notify_notification_new t b i
                         s <- continue (n, NotifyState t b i) f
                         return $ Right (n, s)
                 else return $ Left NewCalledBeforeInit
 
 -- | Continues old notification session.
-continue :: (Notification, NotifyState) -> Notify a -> IO NotifyState
+continue :: (NotifyNotification, NotifyState) -> Notify a -> IO NotifyState
 continue (n, s) f = runReaderT (execStateT (runNotify f) s) n
 
 -- | Updates notification 'Title', 'Body' and 'Icon'.
@@ -80,61 +94,56 @@ update mt mb mi = Notify $
          nb = fromMaybe b mb
          ni = fromMaybe i mi
      put (NotifyState nt nb ni)
-     liftIO $ N.updateNotify n nt (listToMaybe nb) (listToMaybe ni)
+     liftIO $ notify_notification_update n nt nb ni
 
 -- | Shows notification to user.
 render :: Notify Bool
-render = withNotification $ N.showNotify
+render = withNotification $ notify_notification_show
 
 -- | Closes notification.
 close :: Notify Bool
-close = withNotification $ N.closeNotify
+close = withNotification $ notify_notification_close
 
 -- | Sets notification 'Timeout'.
 setTimeout :: Timeout -> Notify ()
-setTimeout = withNotification . N.setTimeout
+setTimeout = withNotification . flip notify_notification_set_timeout
 
 -- | Sets notification 'Category'.
-setCategory :: Category -> Notify ()
-setCategory = withNotification . N.setCategory
+setCategory :: String -> Notify ()
+setCategory = withNotification . flip notify_notification_set_category
 
 -- | Sets notification 'Urgency'.
 setUrgency :: Urgency -> Notify ()
-setUrgency = withNotification . N.setUrgency
+setUrgency = withNotification . flip notify_notification_set_urgency
 
 -- | Sets notification icon from pixbuf
 setIconFromPixbuf :: Pixbuf -> Notify ()
-setIconFromPixbuf = withNotification . N.setIconFromPixbuf
+setIconFromPixbuf = withNotification . flip notify_notification_set_icon_from_pixbuf
 
 -- | Sets notification image from pixbuf
 setImageFromPixbuf :: Pixbuf -> Notify ()
-setImageFromPixbuf = withNotification . N.setImageFromPixbuf
+setImageFromPixbuf = withNotification . flip notify_notification_set_image_from_pixbuf
 
 -- | Adds 'Hint' to notification.
 addHint :: Hint -> Notify ()
-addHint (HintInt k v) = withNotification $ N.setHintInt32 k v
-addHint (HintDouble k v) = withNotification $ N.setHintDouble k v
-addHint (HintString k v) = withNotification $ N.setHintString k v
-addHint (HintByte k v) = withNotification $ N.setHintByte k v
-addHint (HintArray k v) = withNotification $ N.setHintByteArray k v
+addHint (HintInt k v) = withNotification $ \n -> notify_notification_set_hint_int32 n k v
+addHint (HintDouble k v) = withNotification $ \n -> notify_notification_set_hint_double n k v
+addHint (HintString k v) = withNotification $ \n -> notify_notification_set_hint_string n k v
+addHint (HintByte k v) = withNotification $ \n -> notify_notification_set_hint_byte n k v
+addHint (HintArray k v) = withNotification $ \n -> notify_notification_set_hint_byte_array n k v
 
 -- | Removes hints from notification.
 removeHints :: Notify ()
-removeHints = withNotification N.clearHints
+removeHints = withNotification notify_notification_clear_hints
 
 -- | Adds action to notification.
-addAction :: String -> String -> (Notification -> String -> IO ()) -> Notify ()
-addAction a l c = withNotification $ N.addAction a l c
+addAction :: String -> String -> (NotifyNotification -> String -> IO ()) -> Notify ()
+addAction a l c = withNotification $ \n -> notify_notification_add_action n a l c
 
 -- | Removes actions from notification.
 removeActions :: Notify ()
-removeActions = withNotification N.clearActions
+removeActions = withNotification notify_notification_clear_actions
 
 
-withNotification :: (Notification -> IO a) -> Notify a
+withNotification :: (NotifyNotification -> IO a) -> Notify a
 withNotification f = Notify $ ask >>= liftIO . f
-
-
-listToMaybe :: [a] -> Maybe [a]
-listToMaybe [] = Nothing
-listToMaybe xs = Just xs

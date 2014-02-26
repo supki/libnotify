@@ -85,7 +85,7 @@ notify_get_server_caps = do
   g_list_free glist -- free list itself
   return caps
 
-foreign import ccall unsafe "libnotify/notify.h notify_get_server_caps"
+foreign import ccall safe "libnotify/notify.h notify_get_server_caps"
   notify_get_server_caps_c :: IO GList
 
 -- | Server information
@@ -121,7 +121,7 @@ notify_get_server_info =
       else
         return Nothing
 
-foreign import ccall unsafe "libnotify/notify.h notify_get_server_info"
+foreign import ccall safe "libnotify/notify.h notify_get_server_info"
   notify_get_server_info_c :: Ptr CString -> Ptr CString -> Ptr CString -> Ptr CString -> IO Bool
 
 foreign import ccall unsafe "g_list_free"

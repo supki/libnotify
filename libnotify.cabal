@@ -22,9 +22,7 @@ library
   exposed-modules:
     System.Libnotify
     System.Libnotify.C.Notify
-    System.Libnotify.Types
-  other-modules:
-    System.Libnotify.Internal
+    System.Libnotify.C.NotifyNotification
   ghc-options:
     -Wall
     -fno-warn-unused-do-bind
