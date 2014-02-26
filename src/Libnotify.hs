@@ -8,7 +8,7 @@ module Libnotify
   , setTimeout, setCategory, setUrgency
   , addHint, removeHints
   , addAction, removeActions
-  , setIconFromPixbuf, setImageFromPixbuf
+  , setImageFromPixbuf
   ) where
 
 import Control.Applicative ((<$>))
@@ -115,10 +115,6 @@ setCategory = withNotification . flip notify_notification_set_category
 -- | Sets notification 'Urgency'.
 setUrgency :: Urgency -> Notify ()
 setUrgency = withNotification . flip notify_notification_set_urgency
-
--- | Sets notification icon from pixbuf
-setIconFromPixbuf :: Pixbuf -> Notify ()
-setIconFromPixbuf = withNotification . flip notify_notification_set_icon_from_pixbuf
 
 -- | Sets notification image from pixbuf
 setImageFromPixbuf :: Pixbuf -> Notify ()
