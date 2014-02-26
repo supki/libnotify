@@ -98,11 +98,11 @@ update mt mb mi = Notify $
 
 -- | Shows notification to user.
 render :: Notify Bool
-render = withNotification $ notify_notification_show
+render = withNotification notify_notification_show
 
 -- | Closes notification.
 close :: Notify Bool
-close = withNotification $ notify_notification_close
+close = withNotification notify_notification_close
 
 -- | Sets notification 'Timeout'.
 setTimeout :: Timeout -> Notify ()

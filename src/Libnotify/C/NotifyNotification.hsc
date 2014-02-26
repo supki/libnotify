@@ -35,6 +35,7 @@ module Libnotify.C.NotifyNotification
 
 import Control.Exception (throwIO)
 import Data.Data (Typeable, Data)
+import Data.Void (Void)
 import GHC.Generics (Generic)
 import Foreign
 import Foreign.C
@@ -44,9 +45,9 @@ import Unsafe.Coerce (unsafeCoerce)
 import qualified Data.ByteString as BS
 
 -- | An opaque notification token
-newtype NotifyNotification = NotifyNotification (Ptr NotifyNotification)
+type NotifyNotification = Ptr Void
 
--- | Create a new NotifyNotification
+-- | Create a new 'NotifyNotification'
 --
 -- Only summary is required
 notify_notification_new
