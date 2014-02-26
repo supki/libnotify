@@ -1,23 +1,35 @@
-Name: libnotify
-Version: 0.0.2.1
-Description: Usable binding to libnotify library.
-License: MIT
-License-file: LICENSE
-Author: Emon Tsukimiya, Matvey Aksenov
-Maintainer: Matvey Aksenov <matvey.aksenov@gmail.com>
-Category: System, Desktop
-Synopsis: Haskell binding for Libnotify
-Cabal-Version: >= 1.6
-Build-Type: Simple
+name: libnotify
+version: 0.0.2.1
+description: Usable binding to libnotify library.
+license: MIT
+license-file: LICENSE
+author: Emon Tsukimiya, Matvey Aksenov
+maintainer: Matvey Aksenov <matvey.aksenov@gmail.com>
+category: System, Desktop
+synopsis: Haskell binding for Libnotify
+cabal-version: >= 1.10
+build-type: Simple
 
-Library
-  Build-Depends: base >= 3 && < 5, bytestring, glib, gtk, mtl
-  Exposed-Modules: System.Libnotify
-                   System.Libnotify.Server
-                   System.Libnotify.Types
-  Other-Modules: System.Libnotify.Internal
-  GHC-Options: -Wall
-  Extra-Libraries: notify
+library
+  default-language: Haskell2010
+  hs-source-dirs: src
+  build-depends:
+      base >= 4 && < 5
+    , bytestring
+    , glib
+    , gtk
+    , mtl
+  exposed-modules:
+    System.Libnotify
+    System.Libnotify.C.Notify
+    System.Libnotify.Types
+  other-modules:
+    System.Libnotify.Internal
+  ghc-options:
+    -Wall
+    -fno-warn-unused-do-bind
+  extra-libraries:
+    notify
 
 source-repository head
   type:     git

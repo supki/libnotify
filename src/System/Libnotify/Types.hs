@@ -5,7 +5,6 @@
 module System.Libnotify.Types
   ( Timeout(..), Urgency(..), Category
   , Title, Body, Icon
-  , ServerInfo(..)
   , Hint(..)
   ) where
 
@@ -36,14 +35,6 @@ type Title = String
 type Body = String
 -- | Type synonim for notification icon.
 type Icon = String
-
--- | Server information.
-data ServerInfo = ServerInfo
-  { serverName  :: String
-  , serverVendor :: String
-  , serverVersion :: String
-  , serverSpecVersion :: String
-  } deriving Show
 
 -- | Hint is some setting (server-dependent) which comes with notification.
 data Hint = HintInt String Int32

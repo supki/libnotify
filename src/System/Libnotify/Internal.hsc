@@ -1,52 +1,41 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 -- | System.Libnotify.Internal module is low level c-bindings to Libnotify.
 -- No API stability is guaranteed.
-{-# OPTIONS_HADDOCK hide #-}
+module System.Libnotify.Internal
+  ( Notification
+  , newNotify
+  , updateNotify
+  , showNotify
+  , setTimeout
+  , setCategory
+  , setUrgency
+  , setIconFromPixbuf
+  , setImageFromPixbuf
+  , setHintInt32
+  , setHintDouble
+  , setHintString
+  , setHintByte
+  , setHintByteArray
+  , clearHints
+  , addAction
+  , clearActions
+  , closeNotify
+  ) where
 
 #include <libnotify/notify.h>
 
-module System.Libnotify.Internal
-  ( Notification
-  , initNotify, uninitNotify, isInitted
-  , newNotify, updateNotify, showNotify
-  , setTimeout, setCategory, setUrgency
-  , setIconFromPixbuf, setImageFromPixbuf
-  , setHintInt32, setHintDouble, setHintString, setHintByte, setHintByteArray, clearHints
-  , addAction, clearActions, closeNotify
-  ) where
-
-import Control.Exception (throw)
+import Control.Exception (throwIO)
 import Foreign
 import Foreign.C
-import Graphics.UI.Gtk.Gdk.Pixbuf
+import Graphics.UI.Gtk.Gdk.Pixbuf (Pixbuf)
 import System.Glib.GError (GError)
-import Unsafe.Coerce
+import Unsafe.Coerce (unsafeCoerce)
 import qualified Data.ByteString as BS
 
 import System.Libnotify.Types
 
 -- | Notification session pointer
 newtype Notification = Notification (Ptr Notification)
-
-initNotify :: String -> IO Bool
-initNotify appName =
-  withCString appName $ \p_appName ->
-  notify_init p_appName
-
-foreign import ccall unsafe "libnotify/notify.h notify_init"
-  notify_init :: CString -> IO Bool
-
-uninitNotify :: IO ()
-uninitNotify = notify_uninit
-
-foreign import ccall unsafe "libnotify/notify.h notify_uninit"
-  notify_uninit :: IO ()
-
-isInitted :: IO Bool
-isInitted = notify_is_initted
-
-foreign import ccall unsafe "libnotify/notify.h notify_is_initted"
-  notify_is_initted :: IO Bool
 
 type ActionCallback a = Notification -> CString -> Ptr a -> IO ()
 type FreeFunc a = Ptr a -> IO ()
@@ -87,7 +76,7 @@ showNotify notify =
     then return result
     else do gerror <- peek p_error
             g_error_free p_error
-            throw gerror
+            throwIO gerror
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_show"
   notify_notification_show :: Notification -> Ptr (Ptr GError) -> IO Bool
@@ -263,7 +252,7 @@ closeNotify notify =
     then return result
     else do gerror <- peek p_error
             g_error_free p_error
-            throw gerror
+            throwIO gerror
 
 foreign import ccall unsafe "libnotify/notify.h notify_notification_close"
   notify_notification_close :: Notification -> Ptr (Ptr GError) -> IO Bool

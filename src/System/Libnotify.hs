@@ -21,6 +21,7 @@ import Graphics.UI.Gtk.Gdk.Pixbuf (Pixbuf)
 
 import System.Libnotify.Internal (Notification)
 import qualified System.Libnotify.Internal as N
+import qualified System.Libnotify.C.Notify as N
 import System.Libnotify.Types
 
 -- | Notification state. Contains next rendered notification data.
@@ -46,9 +47,9 @@ newtype Notify a = Notify
 -}
 withNotifications :: Maybe String -> IO a -> IO (Either NotifyError ())
 withNotifications a x =
-  N.initNotify (fromMaybe " " a) >>= \initted ->
+  N.notify_init (fromMaybe " " a) >>= \initted ->
     if initted
-    then Right <$> (x >> N.uninitNotify)
+    then Right <$> (x >> N.notify_uninit)
     else return $ Left NotifyInitHasFailed
 
 -- | Function for one-time notification with hints perhaps. Should be enough for a vast majority of applications.
@@ -58,7 +59,7 @@ oneShot t b i hs = withNotifications Nothing . new t b i $ mapM_ addHint (fromMa
 -- | Creates new notification session. Inside 'new' call one can manage current notification via 'update' or 'render' calls.
 -- Returns notification pointer. This could be useful if one wants to 'update' or 'close' the same notification after some time (see 'continue').
 new :: Title -> Body -> Icon -> Notify t -> IO (Either NotifyError (Notification, NotifyState))
-new t b i f = N.isInitted >>= \initted ->
+new t b i f = N.notify_is_initted >>= \initted ->
               if initted
                 then do n <- N.newNotify t (listToMaybe b) (listToMaybe i)
                         s <- continue (n, NotifyState t b i) f
