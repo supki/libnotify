@@ -11,17 +11,17 @@ import System.Glib.MainLoop (MainLoop, mainLoopNew, mainLoopRun, mainLoopQuit)
 main :: IO ()
 main = withNotifications "endless" $ do
   l <- mainLoopNew Nothing False
-  n <- notify_notification_new "Query" query "question"
+  n <- notify_notification_new "Hello!" query "face-embarrassed"
   notify_notification_set_timeout n Infinite
-  notify_notification_add_action n "blop" "blop" blopCallback
-  notify_notification_add_action n "flop" "flop" (flopCallback l)
+  notify_notification_add_action n "blob" "Say \"blop\"" blopCallback
+  notify_notification_add_action n "flop" "Say \"flop\"" (flopCallback l)
   notify_notification_show n
   mainLoopRun l
 
 blopCallback :: NotifyNotification -> t -> IO ()
 blopCallback n _ = do
   notify_notification_close n
-  putStrLn "Thanks!"
+  putStrLn response
   threadDelay second
   notify_notification_show n
   return ()
@@ -32,8 +32,9 @@ flopCallback l n _ = do
   putStrLn "Pfft.."
   mainLoopQuit l
 
-query :: String
-query = "Please, choose \"blop\""
+query, response :: String
+query = "Please, say \"blop\"!"
+response = "Thanks!"
 
 second :: Int
 second = 1000000

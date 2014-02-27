@@ -35,22 +35,13 @@ notify_init
   -> IO Bool
 notify_init name = withCString name notify_init_c
 
-foreign import ccall unsafe "libnotify/notify.h notify_init"
-  notify_init_c :: CString -> IO Bool
-
 -- | Uninitialize libnotify
 notify_uninit :: IO ()
 notify_uninit = notify_uninit_c
 
-foreign import ccall unsafe "libnotify/notify.h notify_uninit"
-  notify_uninit_c :: IO ()
-
 -- | Get whether libnotify is initialized or not
 notify_is_initted :: IO Bool
 notify_is_initted = notify_is_initted_c
-
-foreign import ccall unsafe "libnotify/notify.h notify_is_initted"
-  notify_is_initted_c :: IO Bool
 
 -- | Get the application name
 --
@@ -58,17 +49,11 @@ foreign import ccall unsafe "libnotify/notify.h notify_is_initted"
 notify_get_app_name :: IO String
 notify_get_app_name = notify_get_app_name_c >>= peekCString
 
-foreign import ccall unsafe "libnotify/notify.h notify_get_app_name"
-  notify_get_app_name_c :: IO CString
-
 -- | Set the application name
 --
 -- Do not forget to call 'notify_init' before calling this!
 notify_set_app_name :: String -> IO ()
 notify_set_app_name name = withCString name notify_set_app_name_c
-
-foreign import ccall unsafe "libnotify/notify.h notify_set_app_name"
-  notify_set_app_name_c :: CString -> IO ()
 
 -- | Return server capabilities
 --
@@ -84,9 +69,6 @@ notify_get_server_caps = do
   mapM_ free p_caps -- free list elements
   g_list_free glist -- free list itself
   return caps
-
-foreign import ccall safe "libnotify/notify.h notify_get_server_caps"
-  notify_get_server_caps_c :: IO GList
 
 -- | Server information
 data ServerInfo = ServerInfo
@@ -121,8 +103,26 @@ notify_get_server_info =
       else
         return Nothing
 
+foreign import ccall safe "libnotify/notify.h notify_init"
+  notify_init_c :: CString -> IO Bool
+
+foreign import ccall safe "libnotify/notify.h notify_uninit"
+  notify_uninit_c :: IO ()
+
+foreign import ccall safe "libnotify/notify.h notify_is_initted"
+  notify_is_initted_c :: IO Bool
+
+foreign import ccall safe "libnotify/notify.h notify_get_app_name"
+  notify_get_app_name_c :: IO CString
+
+foreign import ccall safe "libnotify/notify.h notify_set_app_name"
+  notify_set_app_name_c :: CString -> IO ()
+
+foreign import ccall safe "libnotify/notify.h notify_get_server_caps"
+  notify_get_server_caps_c :: IO GList
+
 foreign import ccall safe "libnotify/notify.h notify_get_server_info"
   notify_get_server_info_c :: Ptr CString -> Ptr CString -> Ptr CString -> Ptr CString -> IO Bool
 
-foreign import ccall unsafe "g_list_free"
+foreign import ccall safe "g_list_free"
   g_list_free :: GList -> IO ()
