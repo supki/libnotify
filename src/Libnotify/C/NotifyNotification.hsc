@@ -98,10 +98,10 @@ notify_notification_set_app_name notify name =
   withCString name $ \p_name ->
   notify_notification_set_app_name_c notify p_name
 
--- | Timeout in seconds after which notification is closed.
+-- | Timeout after which notification is closed
 data Timeout =
-    Default    -- ^ Default server timeout.
-  | Custom Int -- ^ User defined timeout (in milliseconds).
+    Default    -- ^ Default server timeout
+  | Custom Int -- ^ User defined timeout (in milliseconds)
   | Infinite   -- ^ Notification will never expire
     deriving (Show, Eq, Typeable, Data, Generic)
 

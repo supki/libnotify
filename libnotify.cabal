@@ -1,6 +1,6 @@
 name: libnotify
 version: 0.0.2.1
-description: Usable binding to libnotify library.
+description: Bindings to libnotify
 license: MIT
 license-file: LICENSE
 author: Emon Tsukimiya, Matvey Aksenov
@@ -9,6 +9,10 @@ category: System, Desktop
 synopsis: Haskell binding for Libnotify
 cabal-version: >= 1.10
 build-type: Simple
+extra-doc-files:
+  asset/Greeting.png
+extra-source-files:
+  example/endless.hs
 
 library
   default-language: Haskell2010
@@ -19,6 +23,8 @@ library
     , glib
     , gtk
     , mtl
+    , semigroups
+    , transformers
     , void        >= 0.5
   exposed-modules:
     Libnotify

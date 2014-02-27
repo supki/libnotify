@@ -3,32 +3,35 @@
 -- | This little example program shows how to use libnotify action
 -- callback together with glib MainLoop thing so they actually work
 
+import Control.Applicative ((<$))
 import Control.Concurrent (threadDelay)
+import Data.Functor.Identity
+import Data.Semigroup ((<>))
 import Libnotify
-import Libnotify.C.NotifyNotification
 import System.Glib.MainLoop (MainLoop, mainLoopNew, mainLoopRun, mainLoopQuit)
 
 main :: IO ()
-main = withNotifications "endless" $ do
+main = () <$ do
   l <- mainLoopNew Nothing False
-  n <- notify_notification_new "Hello!" query "face-embarrassed"
-  notify_notification_set_timeout n Infinite
-  notify_notification_add_action n "blob" "Say \"blop\"" blopCallback
-  notify_notification_add_action n "flop" "Say \"flop\"" (flopCallback l)
-  notify_notification_show n
+  display $
+       summary "Hello!"
+    <> body query
+    <> icon "face-embarrassed"
+    <> timeout Infinite
+    <> action "blob" "Say \"blop\"" blopCallback
+    <> action "flop" "Say \"flop\"" (flopCallback l)
   mainLoopRun l
 
-blopCallback :: NotifyNotification -> t -> IO ()
+blopCallback :: Notification Identity -> t -> IO (Notification Identity)
 blopCallback n _ = do
-  notify_notification_close n
+  close n
   putStrLn response
   threadDelay second
-  notify_notification_show n
-  return ()
+  display (base n)
 
-flopCallback :: MainLoop -> NotifyNotification -> t -> IO ()
+flopCallback :: MainLoop -> Notification Identity -> t -> IO ()
 flopCallback l n _ = do
-  notify_notification_close n
+  close n
   putStrLn "Pfft.."
   mainLoopQuit l
 

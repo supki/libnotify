@@ -1,168 +1,203 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving  #-}
--- | System.Libnotify module deals with notification session processing.
-{-# OPTIONS_HADDOCK prune #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE UndecidableInstances #-}
+-- | High level interface to libnotify API
+--
+-- <<asset/Greeting.png>>
 module Libnotify
-  ( oneShot
-  , Notify
-  , NotifyState
+  ( -- * Notification API
+    oneShot
+  , Notification
+  , display
+  , close
   , NotifyError(..)
-  , withNotifications
-  , new, continue, update, render, close
-  , setTimeout, setCategory, setUrgency
-  , addHint, removeHints
-  , addAction, removeActions
-  , setImageFromPixbuf
+    -- * Modifiers
+  , Mod
+  , base
+  , summary
+  , body
+  , icon
+  , timeout
+  , Timeout(..)
+  , category
+  , urgency
+  , Urgency(..)
+  , image
+  , Hint(..)
+  , nohints
+  , action
+  , noactions
+    -- * Concenience re-exports
+  , module Data.Functor.Identity
+  , module Data.Semigroup
   ) where
 
-import Control.Exception (Exception, throwIO, finally)
-import Control.Monad.Reader (ReaderT, ask, runReaderT)
-import Control.Monad.State (StateT, execStateT, get, put)
-import Control.Monad.Trans (MonadIO, liftIO)
+import Control.Applicative (Applicative, pure, (<$))
+import Control.Exception (Exception)
 import Data.ByteString (ByteString)
-import Data.Typeable (Typeable)
+import Data.Foldable (Foldable, for_)
+import Data.Functor.Identity (Identity(..))
 import Data.Int (Int32)
+import Data.Semigroup (Semigroup(..))
+import Data.Typeable (Typeable)
 import Data.Word (Word8)
-import Data.Maybe (fromMaybe)
 import Graphics.UI.Gtk.Gdk.Pixbuf (Pixbuf)
 
 import Libnotify.C.Notify
 import Libnotify.C.NotifyNotification
 
+{-# ANN module "HLint: ignore Avoid lambda" #-}
+{-# ANN module "HLint: ignore Use const" #-}
 {-# ANN module "HLint: ignore Use if" #-}
 
 
--- | Type synonim for notification title.
-type Title = String
--- | Type synonim for notification body.
-type Body = String
--- | Type synonim for notification icon.
-type Icon = String
+-- | Notification token
+data Notification m = Notification
+  { token_   :: m NotifyNotification
+  , summary_ :: String
+  , body_    :: String
+  , icon_    :: String
+  }
 
--- | Hint is some setting (server-dependent) which comes with notification.
-data Hint = HintInt String Int32
-          | HintDouble String Double
-          | HintString String String
-          | HintByte String Word8
-          | HintArray String ByteString
--- | Notification state. Contains next rendered notification data.
-data NotifyState = NotifyState Title Body Icon
+deriving instance Show (m NotifyNotification) => Show (Notification m)
+deriving instance Eq (m NotifyNotification) => Eq (Notification m)
 
--- | Libnotify errors.
+-- | Libnotify errors
 data NotifyError =
     NotifyInitEmptyAppNameError -- ^ empty string is passed to notify_init()
   | NotifyInitFailedError       -- ^ notify_init() has failed for another reason
+  | NotifyShowEmptySummaryError -- ^ notify_init() has failed for another reason
     deriving (Show, Eq, Typeable)
 
 instance Exception NotifyError
 
--- | Notification monad. Saves notification context.
-newtype Notify a = Notify
-  { runNotify :: StateT NotifyState
-                (ReaderT NotifyNotification IO) a }
-    deriving (Functor, Monad, MonadIO)
-
 -- | One-time notification
---
--- Handles @notify_init()@/@notify_uninit()@ business
 oneShot
-  :: String -- ^ Application name
-  -> String -- ^ Summary
+  :: String -- ^ Summary
   -> String -- ^ Body
   -> String -- ^ Icon name or file name
-  -> [Hint] -- ^ List of server hints
+  -- -> [Hint] -- ^ List of server hints
   -> IO ()
-oneShot n t b i hs = do
-  withNotifications n . new t b i $ do
-    mapM_ addHint hs
-    render
-  return ()
+oneShot s b i =
+  () <$ display (summary s <> body b <> icon i)
 
--- | Initialize libnotify for the inner 'IO' action
+-- | Display notification
 --
--- Use this if you plan to do something more involved than 'oneShot'
+-- >>> display (summary "Greeting" <> body "Hello world!" <> icon "face-smile-big")
+display :: Mod Notification -> IO (Notification Identity)
+display (Mod f a) = do
+  notify_init "haskell-libnotify"
+  let x = f empty
+  n <- case token_ x of
+    Nothing -> notify_notification_new (summary_ x) (body_ x) (icon_ x)
+    Just n  -> do
+      notify_notification_update n (summary_ x) (body_ x) (icon_ x)
+      return n
+  let y = x { token_ = Identity n }
+  a y
+  notify_notification_show n
+  return y
+ where empty = Notification Nothing "" "" ""
+
+-- | Close notification
+close :: Foldable m => Notification m -> IO ()
+close n = do
+  notify_init "haskell-libnotify"
+  for_ (token_ n) notify_notification_close
+
+data Mod a = Mod (a Maybe -> a Maybe) (Notification Identity -> IO ())
+
+instance Semigroup (Mod a) where
+  Mod f a <> Mod g b = Mod (g . f) (\x -> a x >> b x)
+
+-- | Modify existing notification token, instead of creating a new one
+base :: Notification Identity -> Mod Notification
+base n = passing (\_ -> nmap (Just . runIdentity) n)
+
+-- | Set notification summary
 --
--- Throws:
+-- Summary should not be an empty string
+summary :: String -> Mod Notification
+summary t = passing (\n -> n { summary_ = t })
+
+-- | Set notification body
+body :: String -> Mod Notification
+body t = passing (\n -> n { body_ = t })
+
+-- | Set notification icon
 --
---   * 'NotifyInitEmptyAppNameError' if application name is an empty string
+-- The argument is either icon name or file name
+icon :: String -> Mod Notification
+icon t = passing (\n -> n { icon_ = t })
+
+-- | Set notification timeout
+timeout :: Timeout -> Mod Notification
+timeout t = act (\n -> notify_notification_set_timeout n t)
+
+-- | Set notification category
+category :: String -> Mod Notification
+category t = act (\n -> notify_notification_set_category n t)
+
+-- | Set notification urgency
+urgency :: Urgency -> Mod Notification
+urgency t = act (\n -> notify_notification_set_urgency n t)
+
+-- | Set notification image
+image :: Pixbuf -> Mod Notification
+image t = act (\n -> notify_notification_set_image_from_pixbuf n t)
+
+-- | Add a hint to notification
 --
---   * 'NotifyInitFailedError' if @notify_init()@ failed for another reason
-withNotifications :: String -> IO a -> IO a
-withNotifications "" _ = throwIO NotifyInitEmptyAppNameError
-withNotifications notifier io = do
-  ret <- notify_init notifier
-  case ret of
-    False -> throwIO NotifyInitFailedError
-    True  -> io `finally` notify_uninit
+-- It's perfectly OK to add multiple hints to a single notification
+class Hint v where
+  hint :: String -> v -> Mod Notification
 
--- | Creates new notification session. Inside 'new' call one can manage current notification via 'update' or 'render' calls.
--- Returns notification pointer. This could be useful if one wants to 'update' or 'close' the same notification after some time (see 'continue').
-new :: Title -> Body -> Icon -> Notify t -> IO (NotifyNotification, NotifyState)
-new t b i f = do
-  n <- notify_notification_new t b i
-  s <- continue (n, NotifyState t b i) f
-  return (n, s)
+instance Hint Int32 where
+  hint k v = act (\n -> notify_notification_set_hint_int32 n k v)
 
--- | Continues old notification session.
-continue :: (NotifyNotification, NotifyState) -> Notify a -> IO NotifyState
-continue (n, s) f = runReaderT (execStateT (runNotify f) s) n
+instance Hint Double where
+  hint k v = act (\n -> notify_notification_set_hint_double n k v)
 
--- | Updates notification 'Title', 'Body' and 'Icon'.
--- User can update notification partially, passing Nothing to arguments that should not changed.
-update :: Maybe Title -> Maybe Body -> Maybe Icon -> Notify Bool
-update mt mb mi = Notify $
-  do n <- ask
-     NotifyState t b i <- get
-     let nt = fromMaybe t mt
-         nb = fromMaybe b mb
-         ni = fromMaybe i mi
-     put (NotifyState nt nb ni)
-     liftIO $ notify_notification_update n nt nb ni
+instance Hint String where
+  hint k v = act (\n -> notify_notification_set_hint_string n k v)
 
--- | Shows notification to user.
-render :: Notify Bool
-render = withNotification notify_notification_show
+instance Hint Word8 where
+  hint k v = act (\n -> notify_notification_set_hint_byte n k v)
 
--- | Closes notification.
-close :: Notify Bool
-close = withNotification notify_notification_close
+instance Hint ByteString where
+  hint k v = act (\n -> notify_notification_set_hint_byte_array n k v)
 
--- | Sets notification 'Timeout'.
-setTimeout :: Timeout -> Notify ()
-setTimeout = withNotification . flip notify_notification_set_timeout
+-- | Remove all hints from the notification
+nohints :: Mod Notification
+nohints = act notify_notification_clear_hints
 
--- | Sets notification 'Category'.
-setCategory :: String -> Notify ()
-setCategory = withNotification . flip notify_notification_set_category
+-- | Add an action to notification
+--
+-- It's perfectly OK to add multiple actions to a single notification
+action :: String -> String -> (Notification Identity -> String -> IO a) -> Mod Notification
+action a l f =
+  Mod id (\n -> notify_notification_add_action (runToken n) a l
+    (\p s' -> () <$ f (n { token_ = Identity p }) s'))
 
--- | Sets notification 'Urgency'.
-setUrgency :: Urgency -> Notify ()
-setUrgency = withNotification . flip notify_notification_set_urgency
+-- | Remove all actions from the notification
+noactions :: Mod Notification
+noactions = act notify_notification_clear_actions
 
--- | Sets notification image from pixbuf
-setImageFromPixbuf :: Pixbuf -> Notify ()
-setImageFromPixbuf = withNotification . flip notify_notification_set_image_from_pixbuf
+-- A helper for making a pure 'Mod'
+passing :: (m Maybe -> m Maybe) -> Mod m
+passing f = Mod f (\_ -> pure ())
 
--- | Adds 'Hint' to notification.
-addHint :: Hint -> Notify ()
-addHint (HintInt k v) = withNotification $ \n -> notify_notification_set_hint_int32 n k v
-addHint (HintDouble k v) = withNotification $ \n -> notify_notification_set_hint_double n k v
-addHint (HintString k v) = withNotification $ \n -> notify_notification_set_hint_string n k v
-addHint (HintByte k v) = withNotification $ \n -> notify_notification_set_hint_byte n k v
-addHint (HintArray k v) = withNotification $ \n -> notify_notification_set_hint_byte_array n k v
+-- A helper for making an I/O 'Mod'
+act :: (NotifyNotification -> IO ()) -> Mod m
+act f = Mod id (f . runToken)
 
--- | Removes hints from notification.
-removeHints :: Notify ()
-removeHints = withNotification notify_notification_clear_hints
+-- Get a libnotify pointer from the Notification
+runToken :: Notification Identity -> NotifyNotification
+runToken = runIdentity . token_
 
--- | Adds action to notification.
-addAction :: String -> String -> (NotifyNotification -> String -> IO ()) -> Notify ()
-addAction a l c = withNotification $ \n -> notify_notification_add_action n a l c
-
--- | Removes actions from notification.
-removeActions :: Notify ()
-removeActions = withNotification notify_notification_clear_actions
-
-
-withNotification :: (NotifyNotification -> IO a) -> Notify a
-withNotification f = Notify $ ask >>= liftIO . f
+-- Notification morphism
+nmap :: (forall a. m a -> n a) -> Notification m -> Notification n
+nmap f n = n { token_ = f (token_ n) }
