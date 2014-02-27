@@ -1,9 +1,13 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving  #-}
 -- | System.Libnotify module deals with notification session processing.
 {-# OPTIONS_HADDOCK prune #-}
 module Libnotify
-  ( Notify, NotifyState, NotifyError (..)
-  , oneShot, withNotifications
+  ( oneShot
+  , Notify
+  , NotifyState
+  , NotifyError(..)
+  , withNotifications
   , new, continue, update, render, close
   , setTimeout, setCategory, setUrgency
   , addHint, removeHints
@@ -11,11 +15,12 @@ module Libnotify
   , setImageFromPixbuf
   ) where
 
-import Control.Applicative ((<$>))
+import Control.Exception (Exception, throwIO, finally)
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.State (StateT, execStateT, get, put)
 import Control.Monad.Trans (MonadIO, liftIO)
 import Data.ByteString (ByteString)
+import Data.Typeable (Typeable)
 import Data.Int (Int32)
 import Data.Word (Word8)
 import Data.Maybe (fromMaybe)
@@ -23,6 +28,8 @@ import Graphics.UI.Gtk.Gdk.Pixbuf (Pixbuf)
 
 import Libnotify.C.Notify
 import Libnotify.C.NotifyNotification
+
+{-# ANN module "HLint: ignore Use if" #-}
 
 
 -- | Type synonim for notification title.
@@ -42,10 +49,12 @@ data Hint = HintInt String Int32
 data NotifyState = NotifyState Title Body Icon
 
 -- | Libnotify errors.
-data NotifyError
-  = NotifyInitHasFailed  -- ^ notify_init() has failed.
-  | NewCalledBeforeInit  -- ^ 'new' has called before notify_init().
-  deriving Show
+data NotifyError =
+    NotifyInitEmptyAppNameError -- ^ empty string is passed to notify_init()
+  | NotifyInitFailedError       -- ^ notify_init() has failed for another reason
+    deriving (Show, Eq, Typeable)
+
+instance Exception NotifyError
 
 -- | Notification monad. Saves notification context.
 newtype Notify a = Notify
@@ -53,32 +62,46 @@ newtype Notify a = Notify
                 (ReaderT NotifyNotification IO) a }
     deriving (Functor, Monad, MonadIO)
 
-{-|
-  Initializes and uninitializes libnotify API.
-  Any notifications API calls should be wrapped into @withNotifications@, i.e.
+-- | One-time notification
+--
+-- Handles @notify_init()@/@notify_uninit()@ business
+oneShot
+  :: String -- ^ Application name
+  -> String -- ^ Summary
+  -> String -- ^ Body
+  -> String -- ^ Icon name or file name
+  -> [Hint] -- ^ List of server hints
+  -> IO ()
+oneShot n t b i hs = do
+  withNotifications n . new t b i $ do
+    mapM_ addHint hs
+    render
+  return ()
 
-  > main = withNotifications (Just "api-name") $ do { ... here are notification API calls ... }
--}
-withNotifications :: Maybe String -> IO a -> IO (Either NotifyError ())
-withNotifications a x =
-  notify_init (fromMaybe " " a) >>= \initted ->
-    if initted
-    then Right <$> (x >> notify_uninit)
-    else return $ Left NotifyInitHasFailed
-
--- | Function for one-time notification with hints perhaps. Should be enough for a vast majority of applications.
-oneShot :: Title -> Body -> Icon -> Maybe [Hint] -> IO (Either NotifyError ())
-oneShot t b i hs = withNotifications Nothing . new t b i $ mapM_ addHint (fromMaybe [] hs) >> render
+-- | Initialize libnotify for the inner 'IO' action
+--
+-- Use this if you plan to do something more involved than 'oneShot'
+--
+-- Throws:
+--
+--   * 'NotifyInitEmptyAppNameError' if application name is an empty string
+--
+--   * 'NotifyInitFailedError' if @notify_init()@ failed for another reason
+withNotifications :: String -> IO a -> IO a
+withNotifications "" _ = throwIO NotifyInitEmptyAppNameError
+withNotifications notifier io = do
+  ret <- notify_init notifier
+  case ret of
+    False -> throwIO NotifyInitFailedError
+    True  -> io `finally` notify_uninit
 
 -- | Creates new notification session. Inside 'new' call one can manage current notification via 'update' or 'render' calls.
 -- Returns notification pointer. This could be useful if one wants to 'update' or 'close' the same notification after some time (see 'continue').
-new :: Title -> Body -> Icon -> Notify t -> IO (Either NotifyError (NotifyNotification, NotifyState))
-new t b i f = notify_is_initted >>= \initted ->
-              if initted
-                then do n <- notify_notification_new t b i
-                        s <- continue (n, NotifyState t b i) f
-                        return $ Right (n, s)
-                else return $ Left NewCalledBeforeInit
+new :: Title -> Body -> Icon -> Notify t -> IO (NotifyNotification, NotifyState)
+new t b i f = do
+  n <- notify_notification_new t b i
+  s <- continue (n, NotifyState t b i) f
+  return (n, s)
 
 -- | Continues old notification session.
 continue :: (NotifyNotification, NotifyState) -> Notify a -> IO NotifyState

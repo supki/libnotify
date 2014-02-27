@@ -4,13 +4,12 @@
 -- callback together with glib MainLoop thing so they actually work
 
 import Control.Concurrent (threadDelay)
-import Libnotify.C.Notify
+import Libnotify
 import Libnotify.C.NotifyNotification
 import System.Glib.MainLoop (MainLoop, mainLoopNew, mainLoopRun, mainLoopQuit)
 
 main :: IO ()
-main = do
-  notify_init "endless"
+main = withNotifications "endless" $ do
   l <- mainLoopNew Nothing False
   n <- notify_notification_new "Query" query "question"
   notify_notification_set_timeout n Infinite
