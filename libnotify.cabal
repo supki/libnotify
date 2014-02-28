@@ -27,7 +27,6 @@ library
     , mtl
     , semigroups
     , transformers >= 0.3
-    , void         >= 0.5
   exposed-modules:
     Libnotify
     Libnotify.C.Notify
