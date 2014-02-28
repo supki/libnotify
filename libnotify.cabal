@@ -13,6 +13,8 @@ extra-doc-files:
   asset/*.png
 extra-source-files:
   example/endless.hs
+  CHANGELOG.md
+  README.md
 
 library
   default-language:

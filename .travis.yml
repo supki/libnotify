@@ -1,0 +1,6 @@
+language: haskell
+
+before_install:
+    - sudo apt-get install libgtk2.0-dev
+    - cabal install gtk2hs-buildtools
+    - sudo apt-get install libnotify-dev
