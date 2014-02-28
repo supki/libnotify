@@ -3,17 +3,15 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- | High level interface to libnotify API
---
--- <<asset/Greeting.png>>
 module Libnotify
   ( -- * Notification API
     Notification
   , display
+  , display_
   , close
   , NotifyError(..)
     -- * Modifiers
   , Mod
-  , base
   , summary
   , body
   , icon
@@ -27,16 +25,17 @@ module Libnotify
   , nohints
   , action
   , noactions
+  , reuse
     -- * Concenience re-exports
-  , module Data.Semigroup
+  , Semigroup(..)
+  , Monoid(..)
   ) where
 
 import Control.Applicative ((<$))
 import Control.Exception (Exception)
-import Control.Monad (mplus)
 import Data.ByteString (ByteString)
 import Data.Int (Int32)
-import Data.Semigroup (Semigroup(..), Monoid(..))
+import Data.Semigroup (Semigroup(..), Monoid(..), Option(..), Last(..), option)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Graphics.UI.Gtk.Gdk.Pixbuf (Pixbuf)
@@ -50,9 +49,9 @@ import Libnotify.C.NotifyNotification
 {-# ANN module "HLint: ignore Use if" #-}
 
 
--- | Notification token
+-- | Notification object
 newtype Notification = Notification
-  { token_   :: NotifyNotification
+  { unNotification :: NotifyNotification
   } deriving (Show, Eq)
 
 -- | Libnotify errors
@@ -65,39 +64,47 @@ instance Exception NotifyError
 
 -- | Display notification
 --
--- >>> display (summary "Greeting" <> body "Hello world!" <> icon "face-smile-big")
+-- >>> token <- display (summary "Greeting" <> body "Hello world!" <> icon "face-smile-big")
+--
+-- <<asset/HelloWorld.png>>
+--
+-- You can 'reuse' notification tokens:
+--
+-- >>> display (reuse token <> body "Hey!")
+--
+-- <<asset/Hey.png>>
 display :: Mod Notification -> IO Notification
 display (Mod m a) = do
   notify_init "haskell-libnotify"
-  n <- maybe (notify_notification_new "" "" "") (return . token_) m
+  n <- option (notify_notification_new "" "" "") (return . unNotification . getLast) m
   let y = Notification n
   a y
   notify_notification_show n
   return y
 
+-- | Display and discard notification token
+--
+-- >>> display_ (summary "Greeting" <> body "Hello world!" <> icon "face-smile-big")
+display_ :: Mod Notification -> IO ()
+display_ m = () <$ display m
+
 -- | Close notification
 close :: Notification -> IO ()
 close n = () <$ do
   notify_init "haskell-libnotify"
-  notify_notification_close (token_ n)
+  notify_notification_close (unNotification n)
 
 -- | A notification modifier
-data Mod a = Mod (Maybe Notification) (Notification -> IO ())
+data Mod a = Mod (Option (Last a)) (a -> IO ())
 
 instance Semigroup (Mod a) where
-  Mod m a <> Mod n b = Mod (n `mplus` m) (\x -> a x >> b x)
+  Mod m a <> Mod n b = Mod (m <> n) (\x -> a x >> b x)
 
 instance Monoid (Mod a) where
-  mempty = Mod Nothing (\_ -> return ())
+  mempty = Mod mempty (\_ -> return ())
   mappend = (<>)
 
--- | Modify existing notification token, instead of creating a new one
-base :: Notification -> Mod Notification
-base n = Mod (Just n) (\_ -> return ())
-
 -- | Set notification summary
---
--- Summary should not be an empty string
 summary :: String -> Mod Notification
 summary t = act (\n -> objectSetPropertyString "summary" n t)
 
@@ -157,13 +164,25 @@ nohints = act notify_notification_clear_hints
 -- It's perfectly OK to add multiple actions to a single notification
 action :: String -> String -> (Notification -> String -> IO a) -> Mod Notification
 action a l f =
-  Mod Nothing (\n -> notify_notification_add_action (token_ n) a l
+  Mod mempty (\n -> notify_notification_add_action (unNotification n) a l
     (\p s' -> () <$ f (Notification p) s'))
 
 -- | Remove all actions from the notification
 noactions :: Mod Notification
 noactions = act notify_notification_clear_actions
 
+-- | Reuse existing notification token, instead of creating a new one
+--
+-- If you try to reuse multiple tokens, the last one wins, e.g.
+--
+-- >>> foo <- display (body "foo")
+-- >>> bar <- display (body "bar")
+-- >>> display (base foo <> base bar)
+--
+-- will show \"foo\" once and \"bar\" twice
+reuse :: Notification -> Mod Notification
+reuse n = Mod (Option (Just (Last n))) (\_ -> return ())
+
 -- A helper for making an I/O 'Mod'
-act :: (NotifyNotification -> IO ()) -> Mod m
-act f = Mod Nothing (f . token_)
+act :: (NotifyNotification -> IO ()) -> Mod Notification
+act f = Mod mempty (f . unNotification)

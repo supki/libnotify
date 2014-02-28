@@ -25,7 +25,7 @@ blopCallback n _ = do
   close n
   putStrLn "Thanks!"
   threadDelay second
-  display (base n <> summary "" <> body "Pretty please, say \"blop\"!")
+  display (reuse n <> summary "" <> body "Pretty please, say \"blop\"!")
 
 flopCallback :: MainLoop -> Notification -> t -> IO ()
 flopCallback l n _ = do

@@ -10,7 +10,7 @@ synopsis:           Haskell binding for Libnotify
 cabal-version:      >= 1.10
 build-type:         Simple
 extra-doc-files:
-  asset/Greeting.png
+  asset/*.png
 extra-source-files:
   example/endless.hs
 
