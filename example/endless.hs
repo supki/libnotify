@@ -6,7 +6,6 @@
 import Control.Applicative ((<$))
 import Control.Concurrent (threadDelay)
 import Data.Functor.Identity
-import Data.Semigroup ((<>))
 import Libnotify
 import System.Glib.MainLoop (MainLoop, mainLoopNew, mainLoopRun, mainLoopQuit)
 

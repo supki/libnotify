@@ -40,7 +40,7 @@ import Data.ByteString (ByteString)
 import Data.Foldable (Foldable, for_)
 import Data.Functor.Identity (Identity(..))
 import Data.Int (Int32)
-import Data.Semigroup (Semigroup(..))
+import Data.Semigroup (Semigroup(..), Monoid(..))
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Graphics.UI.Gtk.Gdk.Pixbuf (Pixbuf)
@@ -101,6 +101,10 @@ data Mod a = Mod (a Maybe -> a Maybe) (Notification Identity -> IO ())
 
 instance Semigroup (Mod a) where
   Mod f a <> Mod g b = Mod (g . f) (\x -> a x >> b x)
+
+instance Monoid (Mod a) where
+  mempty = Mod id (\_ -> return ())
+  mappend = (<>)
 
 -- | Modify existing notification token, instead of creating a new one
 base :: Notification Identity -> Mod Notification
