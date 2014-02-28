@@ -5,7 +5,6 @@
 
 import Control.Applicative ((<$))
 import Control.Concurrent (threadDelay)
-import Data.Functor.Identity
 import Libnotify
 import System.Glib.MainLoop (MainLoop, mainLoopNew, mainLoopRun, mainLoopQuit)
 
@@ -14,29 +13,25 @@ main = () <$ do
   l <- mainLoopNew Nothing False
   display $
        summary "Hello!"
-    <> body query
+    <> body "Please, say \"blop\"!"
     <> icon "face-embarrassed"
     <> timeout Infinite
     <> action "blob" "Say \"blop\"" blopCallback
     <> action "flop" "Say \"flop\"" (flopCallback l)
   mainLoopRun l
 
-blopCallback :: Notification Identity -> t -> IO (Notification Identity)
+blopCallback :: Notification -> t -> IO Notification
 blopCallback n _ = do
   close n
-  putStrLn response
+  putStrLn "Thanks!"
   threadDelay second
-  display (base n)
+  display (base n <> summary "" <> body "Pretty please, say \"blop\"!")
 
-flopCallback :: MainLoop -> Notification Identity -> t -> IO ()
+flopCallback :: MainLoop -> Notification -> t -> IO ()
 flopCallback l n _ = do
   close n
   putStrLn "Pfft.."
   mainLoopQuit l
-
-query, response :: String
-query = "Please, say \"blop\"!"
-response = "Thanks!"
 
 second :: Int
 second = 1000000

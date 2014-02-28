@@ -24,9 +24,7 @@ library
     , bytestring
     , glib
     , gtk
-    , mtl
     , semigroups
-    , transformers >= 0.3
   exposed-modules:
     Libnotify
     Libnotify.C.Notify

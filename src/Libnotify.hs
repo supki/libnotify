@@ -1,8 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- | High level interface to libnotify API
 --
@@ -30,20 +28,19 @@ module Libnotify
   , action
   , noactions
     -- * Concenience re-exports
-  , module Data.Functor.Identity
   , module Data.Semigroup
   ) where
 
-import Control.Applicative (Applicative, pure, (<$))
+import Control.Applicative ((<$))
 import Control.Exception (Exception)
+import Control.Monad (mplus)
 import Data.ByteString (ByteString)
-import Data.Foldable (Foldable, for_)
-import Data.Functor.Identity (Identity(..))
 import Data.Int (Int32)
 import Data.Semigroup (Semigroup(..), Monoid(..))
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Graphics.UI.Gtk.Gdk.Pixbuf (Pixbuf)
+import System.Glib.Properties (objectSetPropertyString)
 
 import Libnotify.C.Notify
 import Libnotify.C.NotifyNotification
@@ -54,21 +51,14 @@ import Libnotify.C.NotifyNotification
 
 
 -- | Notification token
-data Notification m = Notification
-  { token_   :: m NotifyNotification
-  , summary_ :: String
-  , body_    :: String
-  , icon_    :: String
-  }
-
-deriving instance Show (m NotifyNotification) => Show (Notification m)
-deriving instance Eq (m NotifyNotification) => Eq (Notification m)
+newtype Notification = Notification
+  { token_   :: NotifyNotification
+  } deriving (Show, Eq)
 
 -- | Libnotify errors
 data NotifyError =
     NotifyInitEmptyAppNameError -- ^ empty string is passed to notify_init()
   | NotifyInitFailedError       -- ^ notify_init() has failed for another reason
-  | NotifyShowEmptySummaryError -- ^ notify_init() has failed for another reason
     deriving (Show, Eq, Typeable)
 
 instance Exception NotifyError
@@ -76,55 +66,50 @@ instance Exception NotifyError
 -- | Display notification
 --
 -- >>> display (summary "Greeting" <> body "Hello world!" <> icon "face-smile-big")
-display :: Mod Notification -> IO (Notification Identity)
-display (Mod f a) = do
+display :: Mod Notification -> IO Notification
+display (Mod m a) = do
   notify_init "haskell-libnotify"
-  let x = f empty
-  n <- case token_ x of
-    Nothing -> notify_notification_new (summary_ x) (body_ x) (icon_ x)
-    Just n  -> do
-      notify_notification_update n (summary_ x) (body_ x) (icon_ x)
-      return n
-  let y = x { token_ = Identity n }
+  n <- maybe (notify_notification_new "" "" "") (return . token_) m
+  let y = Notification n
   a y
   notify_notification_show n
   return y
- where empty = Notification Nothing "" "" ""
 
 -- | Close notification
-close :: Foldable m => Notification m -> IO ()
-close n = do
+close :: Notification -> IO ()
+close n = () <$ do
   notify_init "haskell-libnotify"
-  for_ (token_ n) notify_notification_close
+  notify_notification_close (token_ n)
 
-data Mod a = Mod (a Maybe -> a Maybe) (Notification Identity -> IO ())
+-- | A notification modifier
+data Mod a = Mod (Maybe Notification) (Notification -> IO ())
 
 instance Semigroup (Mod a) where
-  Mod f a <> Mod g b = Mod (g . f) (\x -> a x >> b x)
+  Mod m a <> Mod n b = Mod (n `mplus` m) (\x -> a x >> b x)
 
 instance Monoid (Mod a) where
-  mempty = Mod id (\_ -> return ())
+  mempty = Mod Nothing (\_ -> return ())
   mappend = (<>)
 
 -- | Modify existing notification token, instead of creating a new one
-base :: Notification Identity -> Mod Notification
-base n = passing (\_ -> nmap (Just . runIdentity) n)
+base :: Notification -> Mod Notification
+base n = Mod (Just n) (\_ -> return ())
 
 -- | Set notification summary
 --
 -- Summary should not be an empty string
 summary :: String -> Mod Notification
-summary t = passing (\n -> n { summary_ = t })
+summary t = act (\n -> objectSetPropertyString "summary" n t)
 
 -- | Set notification body
 body :: String -> Mod Notification
-body t = passing (\n -> n { body_ = t })
+body t = act (\n -> objectSetPropertyString "body" n t)
 
 -- | Set notification icon
 --
 -- The argument is either icon name or file name
 icon :: String -> Mod Notification
-icon t = passing (\n -> n { icon_ = t })
+icon t = act (\n -> objectSetPropertyString "icon-name" n t)
 
 -- | Set notification timeout
 timeout :: Timeout -> Mod Notification
@@ -170,27 +155,15 @@ nohints = act notify_notification_clear_hints
 -- | Add an action to notification
 --
 -- It's perfectly OK to add multiple actions to a single notification
-action :: String -> String -> (Notification Identity -> String -> IO a) -> Mod Notification
+action :: String -> String -> (Notification -> String -> IO a) -> Mod Notification
 action a l f =
-  Mod id (\n -> notify_notification_add_action (runToken n) a l
-    (\p s' -> () <$ f (n { token_ = Identity p }) s'))
+  Mod Nothing (\n -> notify_notification_add_action (token_ n) a l
+    (\p s' -> () <$ f (Notification p) s'))
 
 -- | Remove all actions from the notification
 noactions :: Mod Notification
 noactions = act notify_notification_clear_actions
 
--- A helper for making a pure 'Mod'
-passing :: (m Maybe -> m Maybe) -> Mod m
-passing f = Mod f (\_ -> pure ())
-
 -- A helper for making an I/O 'Mod'
 act :: (NotifyNotification -> IO ()) -> Mod m
-act f = Mod id (f . runToken)
-
--- Get a libnotify pointer from the Notification
-runToken :: Notification Identity -> NotifyNotification
-runToken = runIdentity . token_
-
--- Notification morphism
-nmap :: (forall a. m a -> n a) -> Notification m -> Notification n
-nmap f n = n { token_ = f (token_ n) }
+act f = Mod Nothing (f . token_)

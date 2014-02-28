@@ -46,6 +46,7 @@ import qualified Data.ByteString as BS
 
 -- | An opaque notification token
 newtype NotifyNotification = NotifyNotification (ForeignPtr NotifyNotification)
+  deriving (Show, Eq)
 
 instance GObjectClass NotifyNotification where
   toGObject (NotifyNotification p) = GObject (castForeignPtr p)
