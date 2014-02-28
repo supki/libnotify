@@ -9,8 +9,7 @@
 -- <<asset/Greeting.png>>
 module Libnotify
   ( -- * Notification API
-    oneShot
-  , Notification
+    Notification
   , display
   , close
   , NotifyError(..)
@@ -73,16 +72,6 @@ data NotifyError =
     deriving (Show, Eq, Typeable)
 
 instance Exception NotifyError
-
--- | One-time notification
-oneShot
-  :: String -- ^ Summary
-  -> String -- ^ Body
-  -> String -- ^ Icon name or file name
-  -- -> [Hint] -- ^ List of server hints
-  -> IO ()
-oneShot s b i =
-  () <$ display (summary s <> body b <> icon i)
 
 -- | Display notification
 --
