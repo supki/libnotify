@@ -105,16 +105,28 @@ instance Monoid (Mod a) where
   mappend = (<>)
 
 -- | Set notification summary
+--
+-- >>> display (summary "Hello!")
+--
+-- <<asset/summary.png>>
 summary :: String -> Mod Notification
 summary t = act (\n -> objectSetPropertyString "summary" n t)
 
 -- | Set notification body
+--
+-- >>> display (body "Hello world!")
+--
+-- <<asset/body.png>>
 body :: String -> Mod Notification
 body t = act (\n -> objectSetPropertyString "body" n t)
 
 -- | Set notification icon
 --
+-- >>> display (icon "face-smile")
+--
 -- The argument is either icon name or file name
+--
+-- <<asset/icon.png>>
 icon :: String -> Mod Notification
 icon t = act (\n -> objectSetPropertyString "icon-name" n t)
 
@@ -162,12 +174,25 @@ nohints = act notify_notification_clear_hints
 -- | Add an action to notification
 --
 -- It's perfectly OK to add multiple actions to a single notification
-action :: String -> String -> (Notification -> String -> IO a) -> Mod Notification
+--
+-- >>> display (action "hello" "Hello world!" (\_ _ -> return ()))
+--
+-- <<asset/action.png>>
+action
+  :: String                         -- ^ Name
+  -> String                         -- ^ Button label
+  -> (Notification -> String -> IO a) -- ^ Callback
+  -> Mod Notification
 action a l f =
   Mod mempty (\n -> notify_notification_add_action (unNotification n) a l
     (\p s' -> () <$ f (Notification p) s'))
 
 -- | Remove all actions from the notification
+--
+-- >>> let callback _ _ = return ()
+-- >>> display (summary "No hello for you!" <> action "hello" "Hello world!" callback <> noactions)
+--
+-- <<asset/noactions.png>>
 noactions :: Mod Notification
 noactions = act notify_notification_clear_actions
 
@@ -179,7 +204,9 @@ noactions = act notify_notification_clear_actions
 -- >>> bar <- display (body "bar")
 -- >>> display (base foo <> base bar)
 --
--- will show \"foo\" once and \"bar\" twice
+-- will show only \"bar\"
+--
+-- <<asset/reuse.png>>
 reuse :: Notification -> Mod Notification
 reuse n = Mod (Option (Just (Last n))) (\_ -> return ())
 
