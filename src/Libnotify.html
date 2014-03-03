@@ -114,86 +114,113 @@
 <a name="line-105"></a>  <span class='hs-varid'>mappend</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;&gt;</span><span class='hs-layout'>)</span>
 <a name="line-106"></a>
 <a name="line-107"></a><a name="summary"></a><span class='hs-comment'>-- | Set notification summary</span>
-<a name="line-108"></a><span class='hs-definition'>summary</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
-<a name="line-109"></a><span class='hs-definition'>summary</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>objectSetPropertyString</span> <span class='hs-str'>"summary"</span> <span class='hs-varid'>n</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
-<a name="line-110"></a>
-<a name="line-111"></a><a name="body"></a><span class='hs-comment'>-- | Set notification body</span>
-<a name="line-112"></a><span class='hs-definition'>body</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
-<a name="line-113"></a><span class='hs-definition'>body</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>objectSetPropertyString</span> <span class='hs-str'>"body"</span> <span class='hs-varid'>n</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+<a name="line-108"></a><span class='hs-comment'>--</span>
+<a name="line-109"></a><span class='hs-comment'>-- &gt;&gt;&gt; display (summary "Hello!")</span>
+<a name="line-110"></a><span class='hs-comment'>--</span>
+<a name="line-111"></a><span class='hs-comment'>-- &lt;&lt;asset/summary.png&gt;&gt;</span>
+<a name="line-112"></a><span class='hs-definition'>summary</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
+<a name="line-113"></a><span class='hs-definition'>summary</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>objectSetPropertyString</span> <span class='hs-str'>"summary"</span> <span class='hs-varid'>n</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
 <a name="line-114"></a>
-<a name="line-115"></a><a name="icon"></a><span class='hs-comment'>-- | Set notification icon</span>
+<a name="line-115"></a><a name="body"></a><span class='hs-comment'>-- | Set notification body</span>
 <a name="line-116"></a><span class='hs-comment'>--</span>
-<a name="line-117"></a><span class='hs-comment'>-- The argument is either icon name or file name</span>
-<a name="line-118"></a><span class='hs-definition'>icon</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
-<a name="line-119"></a><span class='hs-definition'>icon</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>objectSetPropertyString</span> <span class='hs-str'>"icon-name"</span> <span class='hs-varid'>n</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
-<a name="line-120"></a>
-<a name="line-121"></a><a name="timeout"></a><span class='hs-comment'>-- | Set notification timeout</span>
-<a name="line-122"></a><span class='hs-definition'>timeout</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Timeout</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
-<a name="line-123"></a><span class='hs-definition'>timeout</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_timeout</span> <span class='hs-varid'>n</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
-<a name="line-124"></a>
-<a name="line-125"></a><a name="category"></a><span class='hs-comment'>-- | Set notification category</span>
-<a name="line-126"></a><span class='hs-definition'>category</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
-<a name="line-127"></a><span class='hs-definition'>category</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_category</span> <span class='hs-varid'>n</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
-<a name="line-128"></a>
-<a name="line-129"></a><a name="urgency"></a><span class='hs-comment'>-- | Set notification urgency</span>
-<a name="line-130"></a><span class='hs-definition'>urgency</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Urgency</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
-<a name="line-131"></a><span class='hs-definition'>urgency</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_urgency</span> <span class='hs-varid'>n</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+<a name="line-117"></a><span class='hs-comment'>-- &gt;&gt;&gt; display (body "Hello world!")</span>
+<a name="line-118"></a><span class='hs-comment'>--</span>
+<a name="line-119"></a><span class='hs-comment'>-- &lt;&lt;asset/body.png&gt;&gt;</span>
+<a name="line-120"></a><span class='hs-definition'>body</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
+<a name="line-121"></a><span class='hs-definition'>body</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>objectSetPropertyString</span> <span class='hs-str'>"body"</span> <span class='hs-varid'>n</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+<a name="line-122"></a>
+<a name="line-123"></a><a name="icon"></a><span class='hs-comment'>-- | Set notification icon</span>
+<a name="line-124"></a><span class='hs-comment'>--</span>
+<a name="line-125"></a><span class='hs-comment'>-- &gt;&gt;&gt; display (icon "face-smile")</span>
+<a name="line-126"></a><span class='hs-comment'>--</span>
+<a name="line-127"></a><span class='hs-comment'>-- The argument is either icon name or file name</span>
+<a name="line-128"></a><span class='hs-comment'>--</span>
+<a name="line-129"></a><span class='hs-comment'>-- &lt;&lt;asset/icon.png&gt;&gt;</span>
+<a name="line-130"></a><span class='hs-definition'>icon</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
+<a name="line-131"></a><span class='hs-definition'>icon</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>objectSetPropertyString</span> <span class='hs-str'>"icon-name"</span> <span class='hs-varid'>n</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
 <a name="line-132"></a>
-<a name="line-133"></a><a name="image"></a><span class='hs-comment'>-- | Set notification image</span>
-<a name="line-134"></a><span class='hs-definition'>image</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Pixbuf</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
-<a name="line-135"></a><span class='hs-definition'>image</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_image_from_pixbuf</span> <span class='hs-varid'>n</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+<a name="line-133"></a><a name="timeout"></a><span class='hs-comment'>-- | Set notification timeout</span>
+<a name="line-134"></a><span class='hs-definition'>timeout</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Timeout</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
+<a name="line-135"></a><span class='hs-definition'>timeout</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_timeout</span> <span class='hs-varid'>n</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
 <a name="line-136"></a>
-<a name="line-137"></a><a name="Hint"></a><span class='hs-comment'>-- | Add a hint to notification</span>
-<a name="line-138"></a><a name="Hint"></a><span class='hs-comment'>--</span>
-<a name="line-139"></a><a name="Hint"></a><span class='hs-comment'>-- It's perfectly OK to add multiple hints to a single notification</span>
-<a name="line-140"></a><a name="Hint"></a><span class='hs-keyword'>class</span> <span class='hs-conid'>Hint</span> <span class='hs-varid'>v</span> <span class='hs-keyword'>where</span>
-<a name="line-141"></a>  <span class='hs-varid'>hint</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
-<a name="line-142"></a>
-<a name="line-143"></a><a name="instance%20Hint%20Int32"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Hint</span> <span class='hs-conid'>Int32</span> <span class='hs-keyword'>where</span>
-<a name="line-144"></a>  <span class='hs-varid'>hint</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_hint_int32</span> <span class='hs-varid'>n</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
-<a name="line-145"></a>
-<a name="line-146"></a><a name="instance%20Hint%20Double"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Hint</span> <span class='hs-conid'>Double</span> <span class='hs-keyword'>where</span>
-<a name="line-147"></a>  <span class='hs-varid'>hint</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_hint_double</span> <span class='hs-varid'>n</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
+<a name="line-137"></a><a name="category"></a><span class='hs-comment'>-- | Set notification category</span>
+<a name="line-138"></a><span class='hs-definition'>category</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
+<a name="line-139"></a><span class='hs-definition'>category</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_category</span> <span class='hs-varid'>n</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+<a name="line-140"></a>
+<a name="line-141"></a><a name="urgency"></a><span class='hs-comment'>-- | Set notification urgency</span>
+<a name="line-142"></a><span class='hs-definition'>urgency</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Urgency</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
+<a name="line-143"></a><span class='hs-definition'>urgency</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_urgency</span> <span class='hs-varid'>n</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+<a name="line-144"></a>
+<a name="line-145"></a><a name="image"></a><span class='hs-comment'>-- | Set notification image</span>
+<a name="line-146"></a><span class='hs-definition'>image</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Pixbuf</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
+<a name="line-147"></a><span class='hs-definition'>image</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_image_from_pixbuf</span> <span class='hs-varid'>n</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
 <a name="line-148"></a>
-<a name="line-149"></a><a name="instance%20Hint%20String"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Hint</span> <span class='hs-conid'>String</span> <span class='hs-keyword'>where</span>
-<a name="line-150"></a>  <span class='hs-varid'>hint</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_hint_string</span> <span class='hs-varid'>n</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
-<a name="line-151"></a>
-<a name="line-152"></a><a name="instance%20Hint%20Word8"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Hint</span> <span class='hs-conid'>Word8</span> <span class='hs-keyword'>where</span>
-<a name="line-153"></a>  <span class='hs-varid'>hint</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_hint_byte</span> <span class='hs-varid'>n</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
+<a name="line-149"></a><a name="Hint"></a><span class='hs-comment'>-- | Add a hint to notification</span>
+<a name="line-150"></a><a name="Hint"></a><span class='hs-comment'>--</span>
+<a name="line-151"></a><a name="Hint"></a><span class='hs-comment'>-- It's perfectly OK to add multiple hints to a single notification</span>
+<a name="line-152"></a><a name="Hint"></a><span class='hs-keyword'>class</span> <span class='hs-conid'>Hint</span> <span class='hs-varid'>v</span> <span class='hs-keyword'>where</span>
+<a name="line-153"></a>  <span class='hs-varid'>hint</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
 <a name="line-154"></a>
-<a name="line-155"></a><a name="instance%20Hint%20ByteString"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Hint</span> <span class='hs-conid'>ByteString</span> <span class='hs-keyword'>where</span>
-<a name="line-156"></a>  <span class='hs-varid'>hint</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_hint_byte_array</span> <span class='hs-varid'>n</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
+<a name="line-155"></a><a name="instance%20Hint%20Int32"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Hint</span> <span class='hs-conid'>Int32</span> <span class='hs-keyword'>where</span>
+<a name="line-156"></a>  <span class='hs-varid'>hint</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_hint_int32</span> <span class='hs-varid'>n</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
 <a name="line-157"></a>
-<a name="line-158"></a><a name="nohints"></a><span class='hs-comment'>-- | Remove all hints from the notification</span>
-<a name="line-159"></a><span class='hs-definition'>nohints</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
-<a name="line-160"></a><span class='hs-definition'>nohints</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-varid'>notify_notification_clear_hints</span>
-<a name="line-161"></a>
-<a name="line-162"></a><a name="action"></a><span class='hs-comment'>-- | Add an action to notification</span>
-<a name="line-163"></a><span class='hs-comment'>--</span>
-<a name="line-164"></a><span class='hs-comment'>-- It's perfectly OK to add multiple actions to a single notification</span>
-<a name="line-165"></a><span class='hs-definition'>action</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Notification</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IO</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
-<a name="line-166"></a><span class='hs-definition'>action</span> <span class='hs-varid'>a</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span>
-<a name="line-167"></a>  <span class='hs-conid'>Mod</span> <span class='hs-varid'>mempty</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_add_action</span> <span class='hs-layout'>(</span><span class='hs-varid'>unNotification</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>l</span>
-<a name="line-168"></a>    <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>p</span> <span class='hs-varid'>s'</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>()</span> <span class='hs-varop'>&lt;$</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Notification</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span> <span class='hs-varid'>s'</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-158"></a><a name="instance%20Hint%20Double"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Hint</span> <span class='hs-conid'>Double</span> <span class='hs-keyword'>where</span>
+<a name="line-159"></a>  <span class='hs-varid'>hint</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_hint_double</span> <span class='hs-varid'>n</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
+<a name="line-160"></a>
+<a name="line-161"></a><a name="instance%20Hint%20String"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Hint</span> <span class='hs-conid'>String</span> <span class='hs-keyword'>where</span>
+<a name="line-162"></a>  <span class='hs-varid'>hint</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_hint_string</span> <span class='hs-varid'>n</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
+<a name="line-163"></a>
+<a name="line-164"></a><a name="instance%20Hint%20Word8"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Hint</span> <span class='hs-conid'>Word8</span> <span class='hs-keyword'>where</span>
+<a name="line-165"></a>  <span class='hs-varid'>hint</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_hint_byte</span> <span class='hs-varid'>n</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
+<a name="line-166"></a>
+<a name="line-167"></a><a name="instance%20Hint%20ByteString"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Hint</span> <span class='hs-conid'>ByteString</span> <span class='hs-keyword'>where</span>
+<a name="line-168"></a>  <span class='hs-varid'>hint</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_set_hint_byte_array</span> <span class='hs-varid'>n</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
 <a name="line-169"></a>
-<a name="line-170"></a><a name="noactions"></a><span class='hs-comment'>-- | Remove all actions from the notification</span>
-<a name="line-171"></a><span class='hs-definition'>noactions</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
-<a name="line-172"></a><span class='hs-definition'>noactions</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-varid'>notify_notification_clear_actions</span>
+<a name="line-170"></a><a name="nohints"></a><span class='hs-comment'>-- | Remove all hints from the notification</span>
+<a name="line-171"></a><span class='hs-definition'>nohints</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
+<a name="line-172"></a><span class='hs-definition'>nohints</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-varid'>notify_notification_clear_hints</span>
 <a name="line-173"></a>
-<a name="line-174"></a><a name="reuse"></a><span class='hs-comment'>-- | Reuse existing notification token, instead of creating a new one</span>
+<a name="line-174"></a><a name="action"></a><span class='hs-comment'>-- | Add an action to notification</span>
 <a name="line-175"></a><span class='hs-comment'>--</span>
-<a name="line-176"></a><span class='hs-comment'>-- If you try to reuse multiple tokens, the last one wins, e.g.</span>
+<a name="line-176"></a><span class='hs-comment'>-- It's perfectly OK to add multiple actions to a single notification</span>
 <a name="line-177"></a><span class='hs-comment'>--</span>
-<a name="line-178"></a><span class='hs-comment'>-- &gt;&gt;&gt; foo &lt;- display (body "foo")</span>
-<a name="line-179"></a><span class='hs-comment'>-- &gt;&gt;&gt; bar &lt;- display (body "bar")</span>
-<a name="line-180"></a><span class='hs-comment'>-- &gt;&gt;&gt; display (base foo &lt;&gt; base bar)</span>
-<a name="line-181"></a><span class='hs-comment'>--</span>
-<a name="line-182"></a><span class='hs-comment'>-- will show \"foo\" once and \"bar\" twice</span>
-<a name="line-183"></a><span class='hs-definition'>reuse</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Notification</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
-<a name="line-184"></a><span class='hs-definition'>reuse</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mod</span> <span class='hs-layout'>(</span><span class='hs-conid'>Option</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-layout'>(</span><span class='hs-conid'>Last</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>return</span> <span class='hs-conid'>()</span><span class='hs-layout'>)</span>
-<a name="line-185"></a>
-<a name="line-186"></a><a name="act"></a><span class='hs-comment'>-- A helper for making an I/O 'Mod'</span>
-<a name="line-187"></a><span class='hs-definition'>act</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>NotifyNotification</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IO</span> <span class='hs-conid'>()</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
-<a name="line-188"></a><span class='hs-definition'>act</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mod</span> <span class='hs-varid'>mempty</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-varid'>unNotification</span><span class='hs-layout'>)</span>
+<a name="line-178"></a><span class='hs-comment'>-- &gt;&gt;&gt; display (action "hello" "Hello world!" (\_ _ -&gt; return ()))</span>
+<a name="line-179"></a><span class='hs-comment'>--</span>
+<a name="line-180"></a><span class='hs-comment'>-- &lt;&lt;asset/action.png&gt;&gt;</span>
+<a name="line-181"></a><span class='hs-definition'>action</span>
+<a name="line-182"></a>  <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span>                         <span class='hs-comment'>-- ^ Name</span>
+<a name="line-183"></a>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>String</span>                         <span class='hs-comment'>-- ^ Button label</span>
+<a name="line-184"></a>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Notification</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IO</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-comment'>-- ^ Callback</span>
+<a name="line-185"></a>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
+<a name="line-186"></a><span class='hs-definition'>action</span> <span class='hs-varid'>a</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span>
+<a name="line-187"></a>  <span class='hs-conid'>Mod</span> <span class='hs-varid'>mempty</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>notify_notification_add_action</span> <span class='hs-layout'>(</span><span class='hs-varid'>unNotification</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>l</span>
+<a name="line-188"></a>    <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>p</span> <span class='hs-varid'>s'</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>()</span> <span class='hs-varop'>&lt;$</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Notification</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span> <span class='hs-varid'>s'</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-189"></a>
+<a name="line-190"></a><a name="noactions"></a><span class='hs-comment'>-- | Remove all actions from the notification</span>
+<a name="line-191"></a><span class='hs-comment'>--</span>
+<a name="line-192"></a><span class='hs-comment'>-- &gt;&gt;&gt; let callback _ _ = return ()</span>
+<a name="line-193"></a><span class='hs-comment'>-- &gt;&gt;&gt; display (summary "No hello for you!" &lt;&gt; action "hello" "Hello world!" callback &lt;&gt; noactions)</span>
+<a name="line-194"></a><span class='hs-comment'>--</span>
+<a name="line-195"></a><span class='hs-comment'>-- &lt;&lt;asset/noactions.png&gt;&gt;</span>
+<a name="line-196"></a><span class='hs-definition'>noactions</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
+<a name="line-197"></a><span class='hs-definition'>noactions</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-varid'>notify_notification_clear_actions</span>
+<a name="line-198"></a>
+<a name="line-199"></a><a name="reuse"></a><span class='hs-comment'>-- | Reuse existing notification token, instead of creating a new one</span>
+<a name="line-200"></a><span class='hs-comment'>--</span>
+<a name="line-201"></a><span class='hs-comment'>-- If you try to reuse multiple tokens, the last one wins, e.g.</span>
+<a name="line-202"></a><span class='hs-comment'>--</span>
+<a name="line-203"></a><span class='hs-comment'>-- &gt;&gt;&gt; foo &lt;- display (body "foo")</span>
+<a name="line-204"></a><span class='hs-comment'>-- &gt;&gt;&gt; bar &lt;- display (body "bar")</span>
+<a name="line-205"></a><span class='hs-comment'>-- &gt;&gt;&gt; display (base foo &lt;&gt; base bar)</span>
+<a name="line-206"></a><span class='hs-comment'>--</span>
+<a name="line-207"></a><span class='hs-comment'>-- will show only \"bar\"</span>
+<a name="line-208"></a><span class='hs-comment'>--</span>
+<a name="line-209"></a><span class='hs-comment'>-- &lt;&lt;asset/reuse.png&gt;&gt;</span>
+<a name="line-210"></a><span class='hs-definition'>reuse</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Notification</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
+<a name="line-211"></a><span class='hs-definition'>reuse</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mod</span> <span class='hs-layout'>(</span><span class='hs-conid'>Option</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-layout'>(</span><span class='hs-conid'>Last</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>return</span> <span class='hs-conid'>()</span><span class='hs-layout'>)</span>
+<a name="line-212"></a>
+<a name="line-213"></a><a name="act"></a><span class='hs-comment'>-- A helper for making an I/O 'Mod'</span>
+<a name="line-214"></a><span class='hs-definition'>act</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>NotifyNotification</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IO</span> <span class='hs-conid'>()</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mod</span> <span class='hs-conid'>Notification</span>
+<a name="line-215"></a><span class='hs-definition'>act</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mod</span> <span class='hs-varid'>mempty</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-varid'>unNotification</span><span class='hs-layout'>)</span>
 </pre></body>
 </html>
