@@ -1,6 +1,4 @@
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE UndecidableInstances #-}
 -- | High level interface to libnotify API
 module Libnotify
   ( -- * Notification API
@@ -24,7 +22,7 @@ module Libnotify
   , action
   , noactions
   , reuse
-    -- * Concenience re-exports
+    -- * Convenience re-exports
   , Monoid(..), (<>)
   ) where
 
@@ -40,8 +38,6 @@ import Libnotify.C.Notify
 import Libnotify.C.NotifyNotification
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
-{-# ANN module "HLint: ignore Use const" #-}
-{-# ANN module "HLint: ignore Use if" #-}
 
 
 -- | Notification object
