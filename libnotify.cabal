@@ -35,7 +35,6 @@ library
     , bytestring   >= 0.9
     , glib         >= 0.12.3
     , gtk          >= 0.12.3
-    , semigroups   >= 0.9
   exposed-modules:
     Libnotify
     Libnotify.C.Notify
