@@ -1,7 +1,11 @@
 name:               libnotify
 version:            0.1.0.0
 synopsis:           Bindings to libnotify library
-description:        Bindings to libnotify library
+description:
+  The package provides a high level interface to libnotify API (see "Libnotify")
+  .
+  "Libnotify.C.Notify" and "Libnotify.C.NotifyNotification" modules contain
+  bindings to C-level functions if you're into that
 license:            MIT
 license-file:       LICENSE
 author:             Emon Tsukimiya, Matvey Aksenov
