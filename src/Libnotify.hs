@@ -78,11 +78,11 @@ close n = () <$ do
   notify_notification_close (unNotification n)
 
 -- | A notification modifier
-data Mod a = Mod (Last a) (a -> IO ())
+data Mod a = Mod (Last a) (a -> IO ()) 
 
 instance Monoid (Mod a) where
   mempty = Mod mempty (\_ -> return ())
-  mappend = (<>)
+  mappend (Mod x fx) (Mod y fy) = Mod (x <> y) (\n -> fx n >> fy n)
 
 -- | Set notification summary
 --
