@@ -21,12 +21,14 @@ module Libnotify
   , nohints
   , action
   , noactions
+  , appname
   , reuse
     -- * Convenience re-exports
   , Monoid(..), (<>)
   ) where
 
 import Control.Applicative ((<$))
+import Control.Monad ((>=>))
 import Data.ByteString (ByteString)
 import Data.Int (Int32)
 import Data.Monoid (Monoid(..), (<>), Last(..))
@@ -41,9 +43,13 @@ import Libnotify.C.NotifyNotification
 
 
 -- | Notification object
-newtype Notification = Notification
-  { unNotification :: NotifyNotification
+data Notification = Notification
+  { getNotification :: NotifyNotification
+  , getAppName      :: String
   } deriving (Show, Eq)
+
+defaultAppName :: String
+defaultAppName = "haskell-libnotify"
 
 -- | Display notification
 --
@@ -58,12 +64,12 @@ newtype Notification = Notification
 -- <<asset/Hey.png>>
 display :: Mod Notification -> IO Notification
 display (Mod m a) = do
-  notify_init "haskell-libnotify"
-  n <- maybe (notify_notification_new "" "" "") (return . unNotification) (getLast m)
-  let y = Notification n
-  a y
-  notify_notification_show n
-  return y
+  n <- maybe (notify_init defaultAppName >> notify_notification_new "" "" "") (return . getNotification) (getLast m)
+  let y = Notification n defaultAppName
+  y' <- a y
+  notify_init $ getAppName y'
+  notify_notification_show $ getNotification y'
+  return y'
 
 -- | Display and discard notification token
 --
@@ -74,15 +80,15 @@ display_ m = () <$ display m
 -- | Close notification
 close :: Notification -> IO ()
 close n = () <$ do
-  notify_init "haskell-libnotify"
-  notify_notification_close (unNotification n)
+  notify_init $ getAppName n
+  notify_notification_close (getNotification n)
 
 -- | A notification modifier
-data Mod a = Mod (Last a) (a -> IO ())
+data Mod a = Mod (Last a) (a -> IO a)
 
 instance Monoid (Mod a) where
-  mempty = Mod mempty (\_ -> return ())
-  mappend (Mod x fx) (Mod y fy) = Mod (x <> y) (\n -> fx n >> fy n)
+  mempty = Mod mempty return
+  mappend (Mod x fx) (Mod y fy) = Mod (x <> y) (fx >=> fy)
 
 -- | Set notification summary
 --
@@ -164,8 +170,8 @@ action
   -> (Notification -> String -> IO a) -- ^ Callback
   -> Mod Notification
 action a l f =
-  Mod mempty (\n -> notify_notification_add_action (unNotification n) a l
-    (\p s' -> () <$ f (Notification p) s'))
+  Mod mempty (\n -> n <$ notify_notification_add_action (getNotification n) a l
+    (\p s' -> () <$ f (n { getNotification = p }) s'))
 
 -- | Remove all actions from the notification
 --
@@ -175,6 +181,10 @@ action a l f =
 -- <<asset/noactions.png>>
 noactions :: Mod Notification
 noactions = act notify_notification_clear_actions
+
+-- | Set the name used to send the notification
+appname :: String -> Mod Notification
+appname a = Mod mempty (\n -> return $ n { getAppName = a } )
 
 -- | Reuse existing notification token, instead of creating a new one
 --
@@ -188,8 +198,8 @@ noactions = act notify_notification_clear_actions
 --
 -- <<asset/reuse.png>>
 reuse :: Notification -> Mod Notification
-reuse n = Mod (Last (Just n)) (\_ -> return ())
+reuse n = Mod (Last (Just n)) return
 
 -- A helper for making an I/O 'Mod'
 act :: (NotifyNotification -> IO ()) -> Mod Notification
-act f = Mod mempty (f . unNotification)
+act f = Mod mempty (\n -> n <$ f (getNotification n))
