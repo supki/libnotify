@@ -45,6 +45,5 @@ library
     Libnotify.C.NotifyNotification
   ghc-options:
     -Wall
-    -fno-warn-unused-do-bind
   extra-libraries:
     notify
