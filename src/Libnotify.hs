@@ -22,7 +22,7 @@ module Libnotify
   , nohints
   , action
   , noactions
-  , appname
+  , appName
   , reuse
     -- * Convenience re-exports
   , Monoid(..), (<>)
@@ -45,8 +45,8 @@ import Libnotify.C.NotifyNotification
 
 -- | Notification object
 data Notification = Notification
-  { token   :: !NotifyNotification
-  , appName :: !String
+  { token :: !NotifyNotification
+  , name  :: !String
   } deriving (Show, Eq)
 
 -- | Display notification
@@ -61,13 +61,13 @@ data Notification = Notification
 --
 -- <<asset/Hey.png>>
 display :: Mod Notification -> IO Notification
-display (Mod (Last reusedToken) (Last name) acts) = do
-  let appName = fromMaybe defaultAppName name
-  _ <- notify_init appName
+display (Mod (Last reusedToken) (Last named) acts) = do
+  let name = fromMaybe defaultAppName named
+  _ <- notify_init name
   token <- maybe (notify_notification_new "" "" "") return reusedToken
-  acts token appName
+  acts token name
   _ <- notify_notification_show token
-  return Notification {token, appName}
+  return Notification {token, name}
 
 -- | Display and discard notification token
 --
@@ -77,8 +77,8 @@ display_ m = () <$ display m
 
 -- | Close notification
 close :: Notification -> IO ()
-close Notification {appName, token} = () <$ do
-  _ <- notify_init appName
+close Notification {name, token} = () <$ do
+  _ <- notify_init name
   notify_notification_close token
 
 -- | A notification modifier
@@ -183,8 +183,8 @@ noactions :: Mod Notification
 noactions = act notify_notification_clear_actions
 
 -- | Set the application name.
-appname :: String -> Mod Notification
-appname appName = Mod mempty (Last (Just appName)) (\_ _ -> return ())
+appName :: String -> Mod Notification
+appName name = Mod mempty (Last (Just name)) (\_ _ -> return ())
 
 -- | Reuse existing notification token, instead of creating a new one
 --
@@ -198,12 +198,12 @@ appname appName = Mod mempty (Last (Just appName)) (\_ _ -> return ())
 --
 -- <<asset/reuse.png>>
 reuse :: Notification -> Mod Notification
-reuse Notification {token, appName} = Mod (Last (Just token)) (Last (Just appName)) (\_ _ -> return ())
+reuse Notification {token, name} = Mod (Last (Just token)) (Last (Just name)) (\_ _ -> return ())
 
 -- A helper for making an I/O 'Mod'
 act :: (NotifyNotification -> IO ()) -> Mod Notification
 act f = Mod mempty mempty (\token _name -> f token)
 
--- The default application name used unless the user specifies the preferred one with 'appname'.
+-- The default application name used unless the user specifies the preferred one with 'appName'.
 defaultAppName :: String
 defaultAppName = "haskell-libnotify"

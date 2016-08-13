@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
 -- | Low level bindings to libnotify
 --
 -- See also <https://developer.gnome.org/libnotify/0.7/libnotify-notify.html>. Haddocks here
@@ -72,10 +73,10 @@ notify_get_server_caps = do
 
 -- | Server information
 data ServerInfo = ServerInfo
-  { name        :: String
-  , vendor      :: String
-  , version     :: String
-  , specVersion :: String
+  { serverName        :: String
+  , serverVendor      :: String
+  , serverVersion     :: String
+  , serverSpecVersion :: String
   } deriving (Show, Eq, Typeable, Data, Generic)
 
 -- | Return server information
@@ -95,11 +96,11 @@ notify_get_server_info =
     ret <- notify_get_server_info_c p_name p_vendor p_version p_specVersion
     if ret
       then do
-        name        <- peekCString =<< peek p_name
-        vendor      <- peekCString =<< peek p_vendor
-        version     <- peekCString =<< peek p_version
-        specVersion <- peekCString =<< peek p_specVersion
-        return $ Just ServerInfo { name, vendor, version, specVersion }
+        serverName        <- peekCString =<< peek p_name
+        serverVendor      <- peekCString =<< peek p_vendor
+        serverVersion     <- peekCString =<< peek p_version
+        serverSpecVersion <- peekCString =<< peek p_specVersion
+        return $ Just ServerInfo {..}
       else
         return Nothing
 
