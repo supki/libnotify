@@ -1,3 +1,10 @@
+0.2
+===
+
+  * Added `appName`, a way to provide a custom application name for a notification.
+
+  * Renamed `ServerInfo` record accessors, so that they are less likely to conflict with other definitions.
+
 0.1.1.0
 =======
 

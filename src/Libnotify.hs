@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE NamedFieldPuns #-}
 -- | High level interface to libnotify API
 module Libnotify
   ( -- * Notification API
@@ -21,6 +22,7 @@ module Libnotify
   , nohints
   , action
   , noactions
+  , appName
   , reuse
     -- * Convenience re-exports
   , Monoid(..), (<>)
@@ -29,6 +31,7 @@ module Libnotify
 import Control.Applicative ((<$))
 import Data.ByteString (ByteString)
 import Data.Int (Int32)
+import Data.Maybe (fromMaybe)
 import Data.Monoid (Monoid(..), (<>), Last(..))
 import Data.Word (Word8)
 import Graphics.UI.Gtk.Gdk.Pixbuf (Pixbuf)
@@ -41,8 +44,9 @@ import Libnotify.C.NotifyNotification
 
 
 -- | Notification object
-newtype Notification = Notification
-  { unNotification :: NotifyNotification
+data Notification = Notification
+  { token :: !NotifyNotification
+  , name  :: !String
   } deriving (Show, Eq)
 
 -- | Display notification
@@ -57,13 +61,13 @@ newtype Notification = Notification
 --
 -- <<asset/Hey.png>>
 display :: Mod Notification -> IO Notification
-display (Mod m a) = do
-  notify_init "haskell-libnotify"
-  n <- maybe (notify_notification_new "" "" "") (return . unNotification) (getLast m)
-  let y = Notification n
-  a y
-  notify_notification_show n
-  return y
+display (Mod (Last reusedToken) (Last named) acts) = do
+  let name = fromMaybe defaultAppName named
+  _ <- notify_init name
+  token <- maybe (notify_notification_new "" "" "") return reusedToken
+  acts token name
+  _ <- notify_notification_show token
+  return Notification {token, name}
 
 -- | Display and discard notification token
 --
@@ -73,16 +77,18 @@ display_ m = () <$ display m
 
 -- | Close notification
 close :: Notification -> IO ()
-close n = () <$ do
-  notify_init "haskell-libnotify"
-  notify_notification_close (unNotification n)
+close Notification {name, token} = () <$ do
+  _ <- notify_init name
+  notify_notification_close token
 
 -- | A notification modifier
-data Mod a = Mod (Last a) (a -> IO ())
+data Mod a = -- the unused type parameter cannot be removed without breaking backward compatibility
+  Mod (Last NotifyNotification) (Last String) (NotifyNotification -> String -> IO ())
 
 instance Monoid (Mod a) where
-  mempty = Mod mempty (\_ -> return ())
-  mappend (Mod x fx) (Mod y fy) = Mod (x <> y) (\n -> fx n >> fy n)
+  mempty = Mod mempty mempty (\_ _ -> return ())
+  mappend (Mod u x fx) (Mod v y fy) =
+    Mod (u <> v) (x <> y) (\token name -> fx token name >> fy token name)
 
 -- | Set notification summary
 --
@@ -164,8 +170,8 @@ action
   -> (Notification -> String -> IO a) -- ^ Callback
   -> Mod Notification
 action a l f =
-  Mod mempty (\n -> notify_notification_add_action (unNotification n) a l
-    (\p s' -> () <$ f (Notification p) s'))
+  Mod mempty mempty
+    (\token name -> notify_notification_add_action token a l (\p s' -> () <$ f (Notification p name) s'))
 
 -- | Remove all actions from the notification
 --
@@ -175,6 +181,10 @@ action a l f =
 -- <<asset/noactions.png>>
 noactions :: Mod Notification
 noactions = act notify_notification_clear_actions
+
+-- | Set the application name.
+appName :: String -> Mod Notification
+appName name = Mod mempty (Last (Just name)) (\_ _ -> return ())
 
 -- | Reuse existing notification token, instead of creating a new one
 --
@@ -188,8 +198,12 @@ noactions = act notify_notification_clear_actions
 --
 -- <<asset/reuse.png>>
 reuse :: Notification -> Mod Notification
-reuse n = Mod (Last (Just n)) (\_ -> return ())
+reuse Notification {token, name} = Mod (Last (Just token)) (Last (Just name)) (\_ _ -> return ())
 
 -- A helper for making an I/O 'Mod'
 act :: (NotifyNotification -> IO ()) -> Mod Notification
-act f = Mod mempty (f . unNotification)
+act f = Mod mempty mempty (\token _name -> f token)
+
+-- The default application name used unless the user specifies the preferred one with 'appName'.
+defaultAppName :: String
+defaultAppName = "haskell-libnotify"
