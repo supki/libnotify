@@ -1,5 +1,5 @@
 name:               libnotify
-version:            0.1.1.0
+version:            0.2
 synopsis:           Bindings to libnotify library
 description:
   The package provides a high level interface to libnotify API (see "Libnotify")
@@ -17,6 +17,7 @@ extra-doc-files:
   asset/*.png
 extra-source-files:
   example/endless.hs
+  example/notify-send.hs
   CHANGELOG.md
   README.md
 
@@ -27,7 +28,7 @@ source-repository head
 source-repository this
   type:     git
   location: https://github.com/supki/libnotify
-  tag:      0.1.1.0
+  tag:      0.2
 
 library
   default-language:
