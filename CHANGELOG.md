@@ -1,3 +1,8 @@
+0.2.1
+=====
+
+  * Added `Semigroup (Mod a)` to satisfy GHC 8.4
+
 0.2
 ===
 
