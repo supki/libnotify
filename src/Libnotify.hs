@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NamedFieldPuns #-}
 -- | High level interface to libnotify API
@@ -24,15 +25,16 @@ module Libnotify
   , noactions
   , appName
   , reuse
-    -- * Convenience re-exports
-  , Monoid(..), (<>)
   ) where
 
 import Control.Applicative ((<$))
 import Data.ByteString (ByteString)
 import Data.Int (Int32)
 import Data.Maybe (fromMaybe)
-import Data.Monoid (Monoid(..), (<>), Last(..))
+import Data.Monoid (Monoid(..), Last(..))
+#if MIN_VERSION_base(4,9,0)
+import Data.Semigroup (Semigroup(..))
+#endif
 import Data.Word (Word8)
 import Graphics.UI.Gtk.Gdk.Pixbuf (Pixbuf)
 import System.Glib.Properties (objectSetPropertyString)
@@ -85,10 +87,21 @@ close Notification {name, token} = () <$ do
 data Mod a = -- the unused type parameter cannot be removed without breaking backward compatibility
   Mod (Last NotifyNotification) (Last String) (NotifyNotification -> String -> IO ())
 
+#if MIN_VERSION_base(4,9,0)
+instance Semigroup (Mod a) where
+  Mod u x fx <> Mod v y fy =
+    Mod (u <> v) (x <> y) (\token name -> fx token name >> fy token name)
+#endif
+
 instance Monoid (Mod a) where
   mempty = Mod mempty mempty (\_ _ -> return ())
+#if MIN_VERSION_base(4,11,0)
+#elif MIN_VERSION_base(4,9,0)
+  mappend = (<>)
+#else
   mappend (Mod u x fx) (Mod v y fy) =
-    Mod (u <> v) (x <> y) (\token name -> fx token name >> fy token name)
+    Mod (mappend u v) (mappend x y) (\token name -> fx token name >> fy token name)
+#endif
 
 -- | Set notification summary
 --
